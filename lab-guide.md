@@ -3,12 +3,13 @@
 <h2>Table of contents</h2>
 
 1. **[Setup gerrit](#setup-gerrit)**
-2. **Setup docker runtime**
-3. **Setup jenkins**
-4. **Setup gerrit/jenkins integration**
-5. **Setup CI job to verify the patchset**
-6. **Setup CD job to build and publish docker image**
-7. **Setup CD job to deploy the services**
+2. **[Setup docker runtime](setup-docker-runtime)**
+3. **[Setup jenkins](setup-jenkins)**
+4. **[Setup gerrit and jenkins integration](setup-gerrit-and-jenkins-integration)**
+5. **[Setup the code repository](setup-the-code-repository)**
+6. **[Setup CI job to verify the patch set](setup-ci-job-to-verify-the-patch-set)**
+7. **[Setup CD job to build and publish docker image](setup-cd-job-to-build-and-publish-docker-image)**
+8. **[Setup CD job to deploy the services](setup-cd-job-to-deploy-the-services)**
 
 <h3>Setup gerrit</h3>
 
@@ -162,7 +163,7 @@ Open Gerrit with a JavaScript capable browser:
 
 
 
-<h3>Setup docker runtime - Lab II</h3>
+<h3>Setup docker runtime</h3>
 
 <h5>Install pre-requisites</h5>
 
@@ -348,4 +349,65 @@ ubuntu@cicd-lab:~$ sudo systemctl daemon-reload
 ubuntu@cicd-lab:~$ sudo service docker stop
 ubuntu@cicd-lab:~$ sudo service docker start
 ~~~
+
+<h3>Setup Jenkins</h3>
+
+<h5>running jenkins as a container</h5>
+
+*We can run Jenkins as a container for this lab. Since, Jenkins will running as a container we should also do some extra steps to expose the docker daemon on the host so Jenkins can run docker commands to build and push images to registry. We also need a docker client to connect to docker remote API on the docker host where we will deploy our services(in this case it will be the same host)*
+
+~~~bash
+ubuntu@cicd-lab:~$ docker run -p 8080:8080 -p 50000:50000 \
+-d -v /var/run/docker.sock:/var/run/docker.sock \
+—name jenkins jenkins/jenkins:lts
+~~~
+
+<h5>Install docker inside jenkins container</h5>
+
+~~~bash
+ubuntu@cicd-lab:~$ docker exec -it -u root jenkins bash
+
+root@5a2f3d6d9005:~# apt-get update && apt-get -y install \
+apt-transport-https ca-certificates curl gnupg2 \
+software-properties-common
+
+root@5a2f3d6d9005:~# curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg > /tmp/dkey; apt-key add /tmp/dkey
+
+root@5a2f3d6d9005:~# add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/$(. /etc/os-release; echo "$ID") \
+   $(lsb_release -cs) \
+   stable"
+
+root@5a2f3d6d9005:~# apt-get update && \
+apt-get -y install docker-ce
+~~~
+
+<h5>Login to the jenkins UI and complete the setup</h5>
+
+get the initialAdminPassword from the running container as follows:
+
+~~~bash
+ubuntu@cicd-lab:~$ docker exec -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+e52fde25e4514afc8f86412541b39a48
+~~~
+
+copy the output(it will differ according to your setup)
+
+![Alt image text](images/labs/jenkins-setup/1.png)
+
+![Alt image text](images/labs/jenkins-setup/2.png)
+
+![Alt image text](images/labs/jenkins-setup/3.png)
+
+![Alt image text](images/labs/jenkins-setup/4.png)
+
+![Alt image text](images/labs/jenkins-setup/5.png)
+
+![Alt image text](images/labs/jenkins-setup/6.png)
+
+
+<h3>Setup gerrit and jenkins integration</h3>
+
+
+
 
