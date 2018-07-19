@@ -2,14 +2,23 @@
 
 <h2>Table of contents</h2>
 
-1. **[Setup gerrit](#setup-gerrit)**
+1. **[Setup gerrit](#setup-gerrit)**. 
+
 2. **[Setup docker runtime](#setup-docker-runtime)**
+
 3. **[Setup jenkins](#setup-jenkins)**
+
 4. **[Setup gerrit and jenkins integration](#setup-gerrit-and-jenkins-integration)**
+
 5. **[Setup the code repository](#setup-the-code-repository)**
+
 6. **[Setup CI job to verify the patch set](#setup-ci-job-to-verify-the-patch-set)**
+
 7. **[Setup CD job to build and publish docker image](#setup-cd-job-to-build-and-publish-docker-image)**
+
 8. **[Setup CD job to deploy the services](#setup-cd-job-to-deploy-the-services)**
+
+
 
 <h3>Setup gerrit</h3>
 
@@ -543,6 +552,47 @@ As gerrit admin user we have to add the jenkins_admin user to the Non-Interactiv
 ![Alt image text](images/labs/gerrit-jenkins-intg/20.png)
 
 ![Alt image text](images/labs/gerrit-jenkins-intg/21.png)
+
+
+
+<h3>Setup the code repository</h3>
+
+1. Login to github and search for sabdhagiri/demo-app
+
+2. fork the repository
+
+3. As admin user in gerrit create a new project without initial commit and the name matching that of the repository you just forked.
+
+4. update the project access rights to allow the users of Non-Interactive users group to set Label Verified.
+ 
+5. from the command line clone the github demo-app repository
+
+6. Now edit your git remote of the todo-app and set it to the gerrit project url.
+
+7. as the admin user push the code to update the project refs in gerrit to match that of the one in github.
+
+8. update the project access rights to allow the users of Non-Interactive users group to set Label Verified.
+
+9. Update the gerrit replication config and add github entry.    
+
+
+<h3> Setup the code repository</h3>
+
+<h5>Setup up Github account and fork the demo-app repository</h5>
+
+![Alt image text](images/labs/setup-code/1.png)
+
+![Alt image text](images/labs/setup-code/2.png)
+
+![Alt image text](images/labs/setup-code/3.png)
+
+![Alt image text](images/labs/setup-code/4.png)
+
+![Alt image text](images/labs/setup-code/5.png)
+
+![Alt image text](images/labs/setup-code/6.png)
+
+![Alt image text](images/labs/setup-code/7.png)
 
 
 
