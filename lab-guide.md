@@ -282,3 +282,70 @@ IP.2 = 127.0.0.1
 
 *`make sure the IP.1 is the ip of your vm`*
 
+**Create and sign client certificate**
+
+~~~bash
+ubuntu@cicd-lab:~$ openssl genrsa -out ~/.docker/key.pem 2048
+
+ubuntu@cicd-lab:~$ openssl req -new -key ~/.docker/key.pem -out ~/.docker/cert.csr \
+    -subj '/CN=docker-client' -config ~/.docker/openssl.cnf
+
+ubuntu@cicd-lab:~$ openssl x509 -req -in ~/.docker/cert.csr -CA ~/.docker/ca.pem \
+    -CAkey ~/.docker/ca-key.pem -CAcreateserial \
+    -out ~/.docker/cert.pem -days 365 -extensions v3_req \
+    -extfile ~/.docker/openssl.cnf
+~~~
+
+**Create and sign server certificate**
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo openssl genrsa -out /etc/docker/ssl/key.pem 2048
+
+ubuntu@cicd-lab:~$ sudo openssl req -new -key /etc/docker/ssl/key.pem \
+    -out /etc/docker/ssl/cert.csr \
+    -subj '/CN=docker-server' -config /etc/docker/ssl/openssl.cnf
+
+ubuntu@cicd-lab:~$ sudo openssl x509 -req -in /etc/docker/ssl/cert.csr -CA ~/.docker/ca.pem \
+    -CAkey ~/.docker/ca-key.pem -CAcreateserial \
+    -out /etc/docker/ssl/cert.pem -days 365 -extensions v3_req \
+    -extfile /etc/docker/ssl/openssl.cnf
+~~~
+
+**Create docker daemon config and update docker systemd unit file**
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo vim /etc/docker/daemon.json
+~~~
+
+and copy the following content into that and save the file
+
+~~~bash
+{
+        "tls": true,
+        "tlsverify": true,
+        "tlscacert": "/etc/docker/ssl/ca.pem",
+        "tlscert": "/etc/docker/ssl/cert.pem",
+        "tlskey": "/etc/docker/ssl/key.pem"
+}
+~~~
+
+Edit the docker systemd unit file to update the host entry
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo vim /lib/systemd/system/docker.service
+~~~
+
+and edit the ExecStart value under the service section to look as following:
+
+~~~bash
+ExecStart=/usr/bin/dockerd -H unix:///var/run/docker.sock -H tcp://0.0.0.0:2376
+~~~
+
+reload the docker daemon and restart the docker service as follows:
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo systemctl daemon-reload
+ubuntu@cicd-lab:~$ sudo service docker stop
+ubuntu@cicd-lab:~$ sudo service docker start
+~~~
+
