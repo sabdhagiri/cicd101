@@ -3,13 +3,13 @@
 <h2>Table of contents</h2>
 
 1. **[Setup gerrit](#setup-gerrit)**
-2. **[Setup docker runtime](setup-docker-runtime)**
-3. **[Setup jenkins](setup-jenkins)**
-4. **[Setup gerrit and jenkins integration](setup-gerrit-and-jenkins-integration)**
-5. **[Setup the code repository](setup-the-code-repository)**
-6. **[Setup CI job to verify the patch set](setup-ci-job-to-verify-the-patch-set)**
-7. **[Setup CD job to build and publish docker image](setup-cd-job-to-build-and-publish-docker-image)**
-8. **[Setup CD job to deploy the services](setup-cd-job-to-deploy-the-services)**
+2. **[Setup docker runtime](#setup-docker-runtime)**
+3. **[Setup jenkins](#setup-jenkins)**
+4. **[Setup gerrit and jenkins integration](#setup-gerrit-and-jenkins-integration)**
+5. **[Setup the code repository](#setup-the-code-repository)**
+6. **[Setup CI job to verify the patch set](#setup-ci-job-to-verify-the-patch-set)**
+7. **[Setup CD job to build and publish docker image](#setup-cd-job-to-build-and-publish-docker-image)**
+8. **[Setup CD job to deploy the services](#setup-cd-job-to-deploy-the-services)**
 
 <h3>Setup gerrit</h3>
 
