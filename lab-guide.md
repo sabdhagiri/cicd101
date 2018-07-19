@@ -790,3 +790,31 @@ origin	ssh://sabdhagiri@172.16.101.23:29418/demo-app (fetch)
 origin	ssh://sabdhagiri@172.16.101.23:29418/demo-app (push)
 ubuntu@cicd-lab:~/demo-app$ 
 ~~~
+
+Now its time to push the code into gerrit to upload the code.
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ git push origin master
+Counting objects: 21, done.
+Compressing objects: 100% (21/21), done.
+Writing objects: 100% (21/21), 10.97 KiB | 0 bytes/s, done.
+Total 21 (delta 1), reused 0 (delta 0)
+remote: Resolving deltas: 100% (1/1)
+remote: Processing changes: refs: 1, done    
+To ssh://sabdhagiri@172.16.101.23:29418/demo-app
+ * [new branch]      master -> master
+ubuntu@cicd-lab:~/demo-app$ 
+
+~~~
+
+We can verify the update by checking the HEAD version in our local development tree and in gerrit
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ git rev-parse HEAD
+794a86648d0de460ac0ce5fce59961ac494de35b
+ubuntu@cicd-lab:~/demo-app$ 
+~~~
+
+The above command gives the latest commit id make sure in gerrit branches master you see the commit id for HEAD
+
+![Alt image text](images/labs/setup-code/21.png)
