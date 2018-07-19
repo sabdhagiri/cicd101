@@ -2,7 +2,7 @@
 
 <h2>Table of contents</h2>
 
-1. **Setup gerrit**
+1. **[Setup gerrit](#Setup--gerrit)**
 2. **Setup docker runtime**
 3. **Setup jenkins**
 4. **Setup gerrit/jenkins integration**
@@ -10,7 +10,7 @@
 6. **Setup CD job to build and publish docker image**
 7. **Setup CD job to deploy the services**
 
-<h3>Setup gerrit - Lab I</h3>
+<h3>Setup gerrit</h3>
 
 <h5>update systemand install pre-requisites</h5>
 
