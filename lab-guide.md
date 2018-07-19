@@ -408,6 +408,143 @@ copy the output(it will differ according to your setup)
 
 <h3>Setup gerrit and jenkins integration</h3>
 
+>Jenkins can be extended with the help of plugins. There are a vast number of plugins available to customize jenkins according to your requirement. We want to setup integration between jenkins and gerrit in order for jenkins to be aware of events happening in gerrit. Gerrit has a way to let user listen to the event stream and the gerrit trigger plugin leverage this feature of gerrit.
+
+
+<h5>Install gerrit trigger plugin in jenkins</h5>
+
+![Alt image text](images/labs/jenkins-setup/7.png)
+
+![Alt image text](images/labs/jenkins-setup/8.png)
+
+![Alt image text](images/labs/jenkins-setup/9.png)
+
+![Alt image text](images/labs/jenkins-setup/10.png)
+
+![Alt image text](images/labs/jenkins-setup/11.png)
+
+
+<h5>Configure gerrit trigger plugin</h5>
+
+![Alt image text](images/labs/gerrit-jenkins-intg/1.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/2.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/3.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/4.png)
+
+
+We will have to setup jenkins user to connect to gerrit in order to tap into the gerrit event stream.
+
+![Alt image text](images/labs/gerrit-jenkins-intg/5.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/6.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/7.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/8.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/9.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/10.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/11.png)
+
+Ok, now it os time to create the ssh keys for the jenkins user, we will use the ssh identity of our jenkins user running in the jenkins container to link that account with the gerrit jenkins_admin user account. This will let jenkins connect to gerrit event stream over ssh and also pull code from gerrit and perform builds.
+
+<h5>setup ssh keys for jenkins user</h5>
+
+Create ssh keys for the jenkins user using ssh-keygen utility and copy the ssh public key to be added in gerrit.
+
+~~~bash
+ubuntu@cicd-lab:~$ docker exec -it jenkins bash
+jenkins@5a2f3d6d9005:/$ cd
+jenkins@5a2f3d6d9005:~$ ssh-keygen -t rsa -b 2048
+Generating public/private rsa key pair.
+Enter file in which to save the key (/var/jenkins_home/.ssh/id_rsa): 
+Created directory '/var/jenkins_home/.ssh'.
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /var/jenkins_home/.ssh/id_rsa.
+Your public key has been saved in /var/jenkins_home/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:fIbkvARV1BN4sbWPM/RnCzFKwVzANq8TuoXV2l9bqvQ jenkins@5a2f3d6d9005
+The key's randomart image is:
++---[RSA 2048]----+
+|        .o*==+.  |
+|       .  .*=o . |
+|      . . .o=+o  |
+|       * ..o.+o+ |
+|        S *.=.+ =|
+|       . * = ..+=|
+|        . o o .o+|
+|         . . ..o |
+|            ..E  |
++----[SHA256]-----+
+jenkins@5a2f3d6d9005:~$ cat ~/.ssh/id_rsa.pub 
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEobSdvr4D4D0JUwUQt0fKrK4tMaPlKoY0/Q6uHuwmhMWglWd9tIK+eF6HOe7pjaReEGZZgN6atJLEJzVgLMjLq1JQ4dVmOrMM8jtJmSA1LL3L0c4wsWuUKnoWcG6QGTlOSfQ8+ABkYNpjCQiTCBrIBeNMI3+7sSihWukrPykzzIFrozZejo6FM3At/RCxr1VlzTnbWqCtJsUyRjECMXc7cfMe0sSsU4QwiZqfb041/DODHUZrKunhKB8iUGkMj9SY4+KpJdhUCeE+US4bZmf5doBz/Cgef0qd9m2S7uEDpl+LZmTZ3UuSgG5Zg9I9nh02m1P3bktqFpJzyeVzNWb3 jenkins@5a2f3d6d9005
+~~~
+
+![Alt image text](images/labs/gerrit-jenkins-intg/12.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/13.png)
+
+We can verify the connectivity by trying to ssh into the gerrit server on port 29418
+
+~~~bash
+jenkins@5a2f3d6d9005:~$ ssh jenkins_admin@172.16.101.23 -p 29418
+Unable to negotiate with 172.16.101.23 port 29418: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1
+~~~
+
+We can overcome this no matching key exchange method by including a config file for the ssh
+
+~~~bash
+jenkins@5a2f3d6d9005:~$ echo "Host 172.16.101.23
+>     Hostname 172.16.101.23
+>     Port 29418
+>     IdentityFile ~/.ssh/id_rsa
+>     KexAlgorithms +diffie-hellman-group1-sha1" > ~/.ssh/config
+jenkins@5a2f3d6d9005:~$ ssh jenkins_admin@172.16.101.23 -p 29418
+The authenticity of host '[172.16.101.23]:29418 ([172.16.101.23]:29418)' can't be established.
+RSA key fingerprint is SHA256:t0Lv1WRf9VTdenhSR0RY/7YMOL+NNsilC/9PS0zlDlU.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '[172.16.101.23]:29418' (RSA) to the list of known hosts.
+
+  ****    Welcome to Gerrit Code Review    ****
+
+  Hi Jenkins Admin, you have successfully connected over SSH.
+
+  Unfortunately, interactive shells are disabled.
+  To clone a hosted Git repository, use:
+
+  git clone ssh://jenkins_admin@172.16.101.23:29418/REPOSITORY_NAME.git
+
+Connection to 172.16.101.23 closed.
+~~~
+
+
+![Alt image text](images/labs/gerrit-jenkins-intg/14.png)
+
+As gerrit admin user we have to add the jenkins_admin user to the Non-Interactive users group so jenkins can listen the the gerrit event stream.
+
+
+
+![Alt image text](images/labs/gerrit-jenkins-intg/15.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/16.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/17.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/18.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/19.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/20.png)
+
+![Alt image text](images/labs/gerrit-jenkins-intg/21.png)
+
+
 
 
 
