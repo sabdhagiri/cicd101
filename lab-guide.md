@@ -580,21 +580,213 @@ As gerrit admin user we have to add the jenkins_admin user to the Non-Interactiv
 
 <h5>Setup up Github account and fork the demo-app repository</h5>
 
+You can signup for a new Github account if you don't have one already
+
+**`TODO: Include screenshots from Mike's Lab guide content`**
+
+Once you login to your account
+
 ![Alt image text](images/labs/setup-code/1.png)
+
+Search for sabdhagiri/demo-app in the search box
 
 ![Alt image text](images/labs/setup-code/2.png)
 
 ![Alt image text](images/labs/setup-code/3.png)
 
+Once you find the repository, you can click on the repo to open it
+
 ![Alt image text](images/labs/setup-code/4.png)
 
+While you are on the repo page, you will see a `fork` button on the top right. Click the fork button to fork the repository on to your account. 
+
 ![Alt image text](images/labs/setup-code/5.png)
+
+wait for the repo to be forked
 
 ![Alt image text](images/labs/setup-code/6.png)
 
 ![Alt image text](images/labs/setup-code/7.png)
 
 
+<h5>Clone code onto your local development machine </h5>
+
+Here we will use the lab instance as our development machine.
+
+~~~bash
+ubuntu@cicd-lab:~$ git clone https://github.com/sabs6488/demo-app.git
+Cloning into 'demo-app'...
+remote: Counting objects: 21, done.
+remote: Compressing objects: 100% (20/20), done.
+remote: Total 21 (delta 1), reused 21 (delta 1), pack-reused 0
+Unpacking objects: 100% (21/21), done.
+Checking connectivity... done.
+~~~
+
+Now let's inspect the repo we just cloned   
+
+~~~bash
+ubuntu@cicd-lab:~$ cd demo-app/
+ubuntu@cicd-lab:~/demo-app$ ll
+total 80
+drwxrwxr-x 5 ubuntu ubuntu 4096 Jul 19 19:24 ./
+drwxr-xr-x 6 ubuntu ubuntu 4096 Jul 19 19:24 ../
+-rw-rw-r-- 1 ubuntu ubuntu 4461 Jul 19 19:24 app.py
+-rw-rw-r-- 1 ubuntu ubuntu 5039 Jul 19 19:24 app.pyc
+-rw-rw-r-- 1 ubuntu ubuntu 3586 Jul 19 19:24 app-test.py
+-rw-rw-r-- 1 ubuntu ubuntu  426 Jul 19 19:24 config.py
+-rw-rw-r-- 1 ubuntu ubuntu   89 Jul 19 19:24 docker-compose.yml
+-rw-rw-r-- 1 ubuntu ubuntu  390 Jul 19 19:24 Dockerfile
+drwxrwxr-x 8 ubuntu ubuntu 4096 Jul 19 19:24 .git/
+-rw-rw-r-- 1 ubuntu ubuntu 2251 Jul 19 19:24 objectstore.py
+-rw-rw-r-- 1 ubuntu ubuntu 3022 Jul 19 19:24 objectstore.pyc
+-rw-rw-r-- 1 ubuntu ubuntu  257 Jul 19 19:24 README
+-rw-rw-r-- 1 ubuntu ubuntu  438 Jul 19 19:24 requirements.txt
+-rw-rw-r-- 1 ubuntu ubuntu  175 Jul 19 19:24 schema.sql
+-rw-rw-r-- 1 ubuntu ubuntu  148 Jul 19 19:24 service.wsgi
+drwxrwxr-x 2 ubuntu ubuntu 4096 Jul 19 19:24 static/
+drwxrwxr-x 2 ubuntu ubuntu 4096 Jul 19 19:24 templates/
+-rw-rw-r-- 1 ubuntu ubuntu  338 Jul 19 19:24 todo.conf
+ubuntu@cicd-lab:~/demo-app$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+nothing to commit, working directory clean
+ubuntu@cicd-lab:~/demo-app$ git remote -v
+origin	https://github.com/sabs6488/demo-app.git (fetch)
+origin	https://github.com/sabs6488/demo-app.git (push)
+ubuntu@cicd-lab:~/demo-app$ 
+~~~
+
+
+<h5>Create new project in gerrit for setting up the code review process</h5>
+
+`Let's login to gerrit as admin user and create new project with the same name as that of our github project(demo-project), we will need this to setup replication in later stages.`
+
+![Alt image text](images/labs/setup-code/8.png)
 
 
 
+`Project is created in gerrit. Now, click on access tab on the top to edit access rights for groups, we need to do this enable Non-Interactive Users to set Verified Label values(This will be used by Jenkins to setup scores) follow the steps below:`
+
+![Alt image text](images/labs/setup-code/9.png)
+
+![Alt image text](images/labs/setup-code/10.png)
+
+![Alt image text](images/labs/setup-code/11.png)
+
+![Alt image text](images/labs/setup-code/12.png)
+
+![Alt image text](images/labs/setup-code/13.png)
+
+![Alt image text](images/labs/setup-code/14.png)
+
+![Alt image text](images/labs/setup-code/15.png)
+
+![Alt image text](images/labs/setup-code/16.png)
+
+Now that we have the project created, it wouldn't have any code in it.
+
+Let's push the code from our development instance, but in order to do so we need to setup ssh keys for our admin account.
+
+Let's create a ssh key pair for our user.
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ ssh-keygen
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/ubuntu/.ssh/id_rsa): 
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/ubuntu/.ssh/id_rsa.
+Your public key has been saved in /home/ubuntu/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:RjH1bLeAa3ByBFXW3Vpog9q0nN9hDRpkBhbsdhkuVag ubuntu@cicd-lab
+The key's randomart image is:
++---[RSA 2048]----+
+|        +=B=*=.o.|
+|         =.BB * +|
+|        +.+O=O.=.|
+|       . =EoXo.+.|
+|        S.oo .o..|
+|       . .    . .|
+|                 |
+|                 |
+|                 |
++----[SHA256]-----+
+ubuntu@cicd-lab:~/demo-app$ cat ~/.ssh/id_rsa.pub 
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDoNhvR6ZgTzmubC+mmp9cPWe5+7K9mcaaV1/lyTrOl0of1PZJMD8Jor7+Y3kaMyCRROUmzeQm5Dnr2PH6O69/apx4TwvDbWxhKhVvPNFpWWL6DY/to0yda3BY+Xpa/eDMaa1Iy+bRKwDRlRSmJvcVJCO4N/58UVlP235OWhGUhng/tGNMuyXPcecWJgSe1xBLnyi2MQ1aUBdNO/CsCihMVJP9oKJQxNJP9CNxs7mKxW3pwgeNbF7xcgVzTCjIW8A6a0ukOSbUbiZ+YRvWdjxz3nEatw1fhqiAvPkjuliw5gC0SwVXmJcFBlJciR1fdWpyynaNynoKN03fQjYPr3Vyt ubuntu@cicd-lab
+ubuntu@cicd-lab:~/demo-app$
+~~~
+
+copy the public key and add it to the admin account of gerrit. login to gerrit as admin user and do the following:
+
+![Alt image text](images/labs/setup-code/17.png)
+
+![Alt image text](images/labs/setup-code/18.png)
+
+![Alt image text](images/labs/setup-code/19.png)
+
+
+Now try to ssh from the development vm to gerrit on port 29418 with username as the admin user account.
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ ssh sabdhagiri@172.16.101.23 -p 29418
+Unable to negotiate with 172.16.101.23 port 29418: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1
+~~~
+
+We will have to edit the ssh config file to include the Key exchange method config
+
+create a new file called config at the following location 
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ vim ~/.ssh/config
+~~~
+
+and copy the following lines into it and save it
+
+~~~bash
+Host 172.16.101.23
+    Hostname 172.16.101.23
+    Port 29418
+    IdentityFile ~/.ssh/id_rsa
+    KexAlgorithms +diffie-hellman-group1-sha1
+~~~
+
+Now, ssh to gerrit should work just fine
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ ssh sabdhagiri@172.16.101.23 -p 29418
+The authenticity of host '[172.16.101.23]:29418 ([172.16.101.23]:29418)' can't be established.
+RSA key fingerprint is SHA256:t0Lv1WRf9VTdenhSR0RY/7YMOL+NNsilC/9PS0zlDlU.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added '[172.16.101.23]:29418' (RSA) to the list of known hosts.
+
+  ****    Welcome to Gerrit Code Review    ****
+
+  Hi Sabdhagiri Govindaraju, you have successfully connected over SSH.
+
+  Unfortunately, interactive shells are disabled.
+  To clone a hosted Git repository, use:
+
+  git clone ssh://sabdhagiri@172.16.101.23:29418/REPOSITORY_NAME.git
+
+Connection to 172.16.101.23 closed.
+ubuntu@cicd-lab:~/demo-app$ 
+~~~
+
+Now, let's get the remote of the demo-app repo we created and push this code from local development tree to the gerrit remote.
+
+![Alt image text](images/labs/setup-code/20.png)
+
+
+grab the ssh url from the project general info and update the local development tree git remote as follows:
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ git remote -v
+origin	https://github.com/sabs6488/demo-app.git (fetch)
+origin	https://github.com/sabs6488/demo-app.git (push)
+ubuntu@cicd-lab:~/demo-app$ git remote set-url origin ssh://sabdhagiri@172.16.101.23:29418/demo-app
+ubuntu@cicd-lab:~/demo-app$ git remote -v
+origin	ssh://sabdhagiri@172.16.101.23:29418/demo-app (fetch)
+origin	ssh://sabdhagiri@172.16.101.23:29418/demo-app (push)
+ubuntu@cicd-lab:~/demo-app$ 
+~~~
