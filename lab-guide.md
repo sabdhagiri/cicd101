@@ -1,6 +1,6 @@
-#CI/CD Lab</h1>
+<h1>CI/CD Lab</h1>
 
-##Table of contents
+<h2>Table of contents</h2>
 
 1. **Setup gerrit**
 2. **Setup docker runtime**
@@ -10,16 +10,16 @@
 6. **Setup CD job to build and publish docker image**
 7. **Setup CD job to deploy the services**
 
-###Setup gerrit - Lab I
+<h3>Setup gerrit - Lab I</h3>
 
-#####update systemand install pre-requisites
+<h5>update systemand install pre-requisites</h5>
 
 ~~~bash
 ubuntu@cicd-lab:~$ sudo apt-get -y update
 ubuntu@cicd-lab:~$ sudo apt-get install git default-jdk wget -y
 ~~~
 
-#####create gerrit user
+<h5>create gerrit user</h5>
 
 ~~~bash
 ubuntu@cicd-lab:~$ sudo useradd -m gerrit
@@ -33,7 +33,7 @@ gerrit@cicd-lab:~$ pwd
 
 ~~~
 
-#####download gerrit war file and verify java install
+<h5>download gerrit war file and verify java install</h5>
 
 ~~~bash
 gerrit@cicd-lab:~$ wget https://www.gerritcodereview.com/download/gerrit-2.12.8.war -O gerrit.war
@@ -44,7 +44,7 @@ OpenJDK Runtime Environment (build 1.8.0_171-8u171-b11-0ubuntu0.16.04.1-b11)
 OpenJDK 64-Bit Server VM (build 25.171-b11, mixed mode)
 ~~~
 
-#####Initialize gerrit code review site
+<h5>Initialize gerrit code review site</h5>
 
 ~~~bash
 gerrit@cicd-lab:~$ java -jar gerrit.war init -d review_site
@@ -140,8 +140,145 @@ Open Gerrit with a JavaScript capable browser:
 
 ~~~
 
-#####Register initial admin user
+<h5>Register initial admin user</h5>
 
 
 ![Alt image text](images/labs/gerrit-setup/1.png)
+
+
+![Alt image text](images/labs/gerrit-setup/2.png)
+
+
+![Alt image text](images/labs/gerrit-setup/3.png)
+
+
+![Alt image text](images/labs/gerrit-setup/4.png)
+
+
+![Alt image text](images/labs/gerrit-setup/5.png)
+
+
+![Alt image text](images/labs/gerrit-setup/6.png)
+
+
+
+<h3>Setup docker runtime - Lab II</h3>
+
+<h5>Install pre-requisites</h5>
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo apt-get install \
+    apt-transport-https \
+    ca-certificates \
+    curl \
+    software-properties-common
+~~~
+
+<h5>add docker apt repository</h5>
+
+~~~bash
+ubuntu@cicd-lab:~$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+OK
+
+ubuntu@cicd-lab:~$ sudo apt-key fingerprint 0EBFCD88
+pub   4096R/0EBFCD88 2017-02-22
+      Key fingerprint = 9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88
+uid                  Docker Release (CE deb) <docker@docker.com>
+sub   4096R/F273FCD8 2017-02-22
+
+ubuntu@cicd-lab:~$ sudo add-apt-repository \
+   "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
+   $(lsb_release -cs) \
+   stable”
+
+~~~
+
+<h5>Install docker-ce</h5>
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo apt-get update
+
+ubuntu@cicd-lab:~$ sudo apt-get install docker-ce
+
+ubuntu@cicd-lab:~$ sudo systemctl status docker.service
+● docker.service - Docker Application Container Engine
+   Loaded: loaded (/lib/systemd/system/docker.service; enabled; vendor preset: enabled)
+   Active: active (running) since Wed 2018-07-18 06:15:45 UTC; 38s ago
+
+~~~
+
+<h5>Add user to docker group to enable access</h5>
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo usermod -aG docker ubuntu
+~~~
+
+<h5>Secure the docker daemon with TLS to enable remote access</h5>
+
+**Create directories to hold the certificates**
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo mkdir /etc/docker/ssl
+ubuntu@cicd-lab:~$ mkdir -p ~/.docker
+~~~
+
+**CREATE AND SIGN CA key and certificate**
+
+~~~bash
+ubuntu@cicd-lab:~$ openssl genrsa -out ~/.docker/ca-key.pem 2048
+
+ubuntu@cicd-lab:~$ openssl req -x509 -new -nodes -key ~/.docker/ca-key.pem \
+    -days 10000 -out ~/.docker/ca.pem -subj '/CN=docker-CA'
+
+ubuntu@cicd-lab:~$ ls ~/.docker/
+ca-key.pem  ca.pem
+
+ubuntu@cicd-lab:~$ sudo cp ~/.docker/ca.pem /etc/docker/ssl
+~~~
+
+**Create openssl config for client certificate**
+
+~~~bash
+ubuntu@cicd-lab:~$ vim ~/.docker/openssl.cnf
+~~~
+
+and copy the following content into that and save the file
+
+~~~bash
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+~~~
+
+**Create openssl config for server certificate**
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo vim /etc/docker/ssl/openssl.cnf
+~~~
+
+and copy the following content into that and save the file
+
+~~~bash
+[req]
+req_extensions = v3_req
+distinguished_name = req_distinguished_name
+[req_distinguished_name]
+[ v3_req ]
+basicConstraints = CA:FALSE
+keyUsage = nonRepudiation, digitalSignature, keyEncipherment
+extendedKeyUsage = serverAuth, clientAuth
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = cicd-lab.nova.local
+IP.1 = 172.16.101.23
+IP.2 = 127.0.0.1
+~~~
+
+*`make sure the IP.1 is the ip of your vm`*
 
