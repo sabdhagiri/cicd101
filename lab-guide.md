@@ -2,7 +2,7 @@
 
 <h2>Table of contents</h2>
 
-1. **[Setup gerrit](#Setup-gerrit)**
+1. **[Setup gerrit](#setup-gerrit)**
 2. **Setup docker runtime**
 3. **Setup jenkins**
 4. **Setup gerrit/jenkins integration**
