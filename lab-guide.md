@@ -1218,6 +1218,225 @@ Thus, the changes each and every developer makes and submits is continuously int
 <h3>Setup CD job to build and publish docker image</h3>
 
 
+1. create dockerhub account
+2. install docker related plugins in jenkins
+3. add dockerhub credentials and docker host certificate credentials in jenkins
+4. setup build job on gerrit event
+
+<h5>Create dockerhub account</h5>
+
+**`TODO: Include screenshots from Mike's lab guid`**
+
+<h5>Install docker related plugins in jenkins</h5>
+
+Check and see if you already have Cloudbees Docker build and publish plugin installed, if not install the plugins from the manage plugins page and search from available list and install.
+
+![Alt image text](images/labs/cd/1.png)
+
+![Alt image text](images/labs/cd/2.png)
+
+![Alt image text](images/labs/cd/003.png)
+
+Signup for Docker Hub account if haven't already. 
+
+![Alt image text](images/labs/cd/4.png)
+
+Login to the dockerhub and create a repo called demo-app
+
+![Alt image text](images/labs/cd/005.png)
+
+![Alt image text](images/labs/cd/0005.png)
+
+Create the jenkins credentials for the Docker Hub and also create a credential for the docker host certificate as follows:
+
+![Alt image text](images/labs/cd/5.png)
+
+![Alt image text](images/labs/cd/6.png)
+
+
+
+Copy the client key, client cert, CA cert form docker host's *`~/.docker`* directory which we created earlier in Setup up docker daemon lab.
+
+Client key - 
+
+~~~bash
+ubuntu@cicd-lab:~$ cat ~/.docker/key.pem
+~~~
+
+Client cert -
+
+~~~bash
+ubuntu@cicd-lab:~$ cat ~/.docker/cert.pem
+~~~
+
+Server CA cert - 
+
+~~~bash
+ubuntu@cicd-lab:~$ sudo cat /etc/docker/ssl/ca.pem
+~~~
+
+
+![Alt image text](images/labs/cd/7.png)
+
+Create the build job as follows:
+
+![Alt image text](images/labs/cd/8.png)
+
+![Alt image text](images/labs/cd/9.png)
+
+![Alt image text](images/labs/cd/10.png)
+
+![Alt image text](images/labs/cd/11.png)
+
+![Alt image text](images/labs/cd/12.png)
+
+![Alt image text](images/labs/cd/13.png)
+
+![Alt image text](images/labs/cd/14.png)
+
+![Alt image text](images/labs/cd/15.png)
+
+Now we can verify the build job by making a change in our app and submitting th code for review and then merge it to gerrit master by following the exact same steps we followed in the CI lab.
+
+Let's make a change
+
+Get on to the lab instance and goto local working tree and let's change the html file on login page and change the title from `Todo App` to `Demo App` and submit the change for review.
+
+~~~bash
+ubuntu@cicd-lab:~$ cd demo-app/
+ubuntu@cicd-lab:~/demo-app$ vim templates/login.html
+~~~
+
+edit the *`login.html`* 
+from
+
+![Alt image text](images/labs/cd/17.png)
+
+to 
+
+![Alt image text](images/labs/cd/18.png)
+
+Now save the file and submit the change for review by following the below steps:
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ git status
+On branch master
+Your branch is ahead of 'origin/master' by 1 commit.
+  (use "git push" to publish your local commits)
+Changes not staged for commit:
+  (use "git add <file>..." to update what will be committed)
+  (use "git checkout -- <file>..." to discard changes in working directory)
+
+	modified:   templates/login.html
+
+no changes added to commit (use "git add" and/or "git commit -a")
+
+ubuntu@cicd-lab:~/demo-app$ git add templates/login.html
+
+ubuntu@cicd-lab:~/demo-app$ git status
+On branch master
+Your branch is ahead of 'origin/master' by 1 commit.
+  (use "git push" to publish your local commits)
+Changes to be committed:
+  (use "git reset HEAD <file>..." to unstage)
+
+	modified:   templates/login.html
+
+ubuntu@cicd-lab:~/demo-app$ git commit -a -m "Changed the title in login page"
+[master 4b0888f] Changed the title in login page
+ 1 file changed, 2 insertions(+), 2 deletions(-)
+ 
+ubuntu@cicd-lab:~/demo-app$ git fetch
+From ssh://172.16.101.23:29418/demo-app
+   794a866..ed8407e  master     -> origin/master
+
+ubuntu@cicd-lab:~/demo-app$ git rebase origin master
+Current branch master is up to date.
+
+ubuntu@cicd-lab:~/demo-app$ git review
+remote: Processing changes: new: 1, refs: 1, done            
+remote: 
+remote: New Changes:        
+remote:   http://172.16.101.23:8000/2 Changed the title in login page        
+remote: 
+To ssh://sabdhagiri@172.16.101.23:29418/demo-app
+ * [new branch]      HEAD -> refs/publish/master  
+~~~
+
+This would've automatically triggered the jenkins `demo-verify` job and jenkins hsould've verified the change by now and we can validate this by checking the open changes page in gerrit
+
+![Alt image text](images/labs/cd/19.png)
+
+Now, let's approve the change by giving +2 code review score and submit the change to merge it with master and that should kickoff the `demo-build` job.
+
+![Alt image text](images/labs/cd/20.png)
+
+![Alt image text](images/labs/cd/21.png)
+
+![Alt image text](images/labs/cd/22.png)
+
+Check tags in the DockerHub demo-app repo before and after the merge.
+
+![Alt image text](images/labs/cd/23.png)
+
+![Alt image text](images/labs/cd/24.png)
+
+This concludes the Continuous Delivery lab to continuously create docker image make it readily available for anyone deploy it from DockerHub.
+
+
+
+<h3>Setup CD job to deploy the services</h3>
+
+Now, lets update our demo-build job in jenkins to also deploy the docker image to a docker host, when a change is accepted and merged into master branch.
+
+Let's edit our existing demo-build job in jenkins.
+
+![Alt image text](images/labs/cd/25.png)
+
+![Alt image text](images/labs/cd/26.png)
+
+![Alt image text](images/labs/cd/27.png)
+
+![Alt image text](images/labs/cd/28.png)
+
+![Alt image text](images/labs/cd/29.png)
+
+Now let's verify the job by going to the last ran instance of the job and re-trigger it.
+
+![Alt image text](images/labs/cd/30.png)
+
+![Alt image text](images/labs/cd/31.png)
+
+![Alt image text](images/labs/cd/32.png)
+
+![Alt image text](images/labs/cd/33.png)
+
+![Alt image text](images/labs/cd/34.png)
+
+Now, that we have seen the app up and running let's fix the title on the login page back to Todo App. Once the change is done submit the change for review as earlier and let us see if the service gets redeployed automatically.
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ vim templates/login.html
+
+ubuntu@cicd-lab:~/demo-app$ git fetch
+
+ubuntu@cicd-lab:~/demo-app$ git add templates/
+ubuntu@cicd-lab:~/demo-app$ git commit -a -m "Fixed the headers in login.html"
+ubuntu@cicd-lab:~/demo-app$ git fetch
+ubuntu@cicd-lab:~/demo-app$ git rebase origin master
+ubuntu@cicd-lab:~/demo-app$ git review
+
+~~~
+
+
+
+
+
+
+
+
+
+
 
 
 
