@@ -555,27 +555,6 @@ As gerrit admin user we have to add the jenkins_admin user to the Non-Interactiv
 
 
 
-<h3>Setup the code repository</h3>
-
-1. Login to github and search for sabdhagiri/demo-app
-
-2. fork the repository
-
-3. As admin user in gerrit create a new project without initial commit and the name matching that of the repository you just forked.
-
-4. update the project access rights to allow the users of Non-Interactive users group to set Label Verified.
- 
-5. from the command line clone the github demo-app repository
-
-6. Now edit your git remote of the todo-app and set it to the gerrit project url.
-
-7. as the admin user push the code to update the project refs in gerrit to match that of the one in github.
-
-8. update the project access rights to allow the users of Non-Interactive users group to set Label Verified.
-
-9. Update the gerrit replication config and add github entry.    
-
-
 <h3> Setup the code repository</h3>
 
 <h5>Setup up Github account and fork the demo-app repository</h5>
@@ -818,3 +797,418 @@ ubuntu@cicd-lab:~/demo-app$
 The above command gives the latest commit id make sure in gerrit branches master you see the commit id for HEAD
 
 ![Alt image text](images/labs/setup-code/21.png)
+
+Now we can make changes to the code and submit our changes to gerrit. But, instead of doing a **`git push`** we have to do a **`git review`** to submit the patch set for code review.
+
+There are few steps to do this. First is to install git-review utility which provides the git review command. Then configure git review by creating a **`.gitreview`** file and specify the gerrit environment details.
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ sudo apt-get install git-review
+~~~ 
+
+
+Create the .gitreview file within the root of the project directory
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ vim .gitreview
+~~~
+
+and copy, paste the following content and save it.
+
+~~~bash
+[gerrit]
+host=172.16.101.23
+port=29418
+project=demo-app
+~~~
+
+Now, the local development tree is ready for us to make changes and submit patch sets to gerrit.
+
+Let us do one final thing to setup replication in gerrit so the demo-app repository in gerrit and github stays in sync.
+
+The idea is to have some write-protection in a colloborative environment, locking access to users only to read and restrict write access only to automated systems like gerrit. This will ensure we have a gate to let pass only tested, verified and code reviewd patches into the upstream master.
+
+In order to do this we have to let gerrit push code to our github repo. Let's create ssh key pair for gerrit user on the lab instance.
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ sudo su gerrit
+gerrit@cicd-lab:/home/ubuntu/demo-app$ cd
+gerrit@cicd-lab:~$ ssh-keygen 
+Generating public/private rsa key pair.
+Enter file in which to save the key (/home/gerrit/.ssh/id_rsa): 
+Created directory '/home/gerrit/.ssh'.
+Enter passphrase (empty for no passphrase): 
+Enter same passphrase again: 
+Your identification has been saved in /home/gerrit/.ssh/id_rsa.
+Your public key has been saved in /home/gerrit/.ssh/id_rsa.pub.
+The key fingerprint is:
+SHA256:Olz3tJEAaGhdkwxSulUx8OsSNiinSP19C25Q18RFkHY gerrit@cicd-lab
+The key's randomart image is:
++---[RSA 2048]----+
+|    .++*Bo..=o   |
+|    oo+oo+ = E   |
+|   .... . = .    |
+|  .  + . o o .   |
+| ...+ = S . +    |
+|.. +.+.* . o o   |
+|. .  .*o..  o    |
+|      .+o .      |
+|      .. .       |
++----[SHA256]-----+
+~~~
+
+Now copy the public key and add it to your user account in github under ssh keys section.
+
+~~~bash
+gerrit@cicd-lab:~$ cat ~/.ssh/id_rsa.pub 
+ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEKymB9J85YucxMBtljiqd6N+r1ggBuZN+uP2EGlA+GVBAGFztZ/3c6cNf/GV7y5LvcH3gRlc+/02oe8fhDUfvDCLqhCixg8I/Z2BqFImcgS9y/nsnA/HUolfalu2y8zgqBPDRMiuK9wf1nArlM5ydCp544UuqykjkJ1SA0WyETN4/whdvwtthxr/zFtKGsewpXEkwSL0ylw6lvOTFv0vkQ/pqLine1tX13HmqJWLvtmW0QO5uKrl2wX+VTUiGASF4zrs9/ICAl3Xr9I6vtKkyKYNk3YRRakY+FgYQ2aMuRcwyrcEOTZkaWUDZeIj474OfxhDNTtBjLKS9l8c4lM13 gerrit@cicd-lab
+~~~
+
+copy this to github
+
+![Alt image text](images/labs/setup-code/22.png)
+
+![Alt image text](images/labs/setup-code/23.png)
+
+![Alt image text](images/labs/setup-code/24.png)
+
+![Alt image text](images/labs/setup-code/25.png)
+
+![Alt image text](images/labs/setup-code/26.png)
+
+Now, verify if you can ssh to github.com
+
+~~~bash
+gerrit@cicd-lab:~$ ssh -T git@github.com
+The authenticity of host 'github.com (192.30.253.112)' can't be established.
+RSA key fingerprint is SHA256:nThbg6kXUpJWGl7E1IGOCspRomTxdCARLviKw6E5SY8.
+Are you sure you want to continue connecting (yes/no)? yes
+Warning: Permanently added 'github.com,192.30.253.112' (RSA) to the list of known hosts.
+Hi sabs6488! You've successfully authenticated, but GitHub does not provide shell access.
+~~~
+
+After successful validation of the ssh key, we can setup replication in gerrit.
+
+create a new file called replication.config under the `/home/gerrit/review_site/etc` directory
+
+~~~bash
+gerrit@cicd-lab:~$ vim review_site/etc/replication.config
+~~~
+
+and add the following content in that and save it.
+
+~~~bash
+[remote "github"]
+ url = git@github.com:sabs6488/${name}.git
+ push = +refs/heads/*:refs/heads/*
+ push = +refs/tags/*:refs/tags/*
+ timeout = 5
+ replicationDelay = 0
+ authGroup = Replication
+~~~
+
+**`Note: user your github account instead of sabs6488`**
+
+restart gerrit and observe logs for successful startup.
+
+~~~bash
+gerrit@cicd-lab:~$ review_site/bin/gerrit.sh stop
+Stopping Gerrit Code Review: OK
+gerrit@cicd-lab:~$ 
+gerrit@cicd-lab:~$ 
+gerrit@cicd-lab:~$ review_site/bin/gerrit.sh start
+Starting Gerrit Code Review: OK
+gerrit@cicd-lab:~$ tail -f review_site/logs/error_log
+[2018-07-19 22:59:28,520] [main] INFO  com.google.gerrit.server.plugins.PluginLoader : Loaded plugin replication, version v2.12.8
+[2018-07-19 22:59:28,587] [main] INFO  com.google.gerrit.server.plugins.PluginLoader : Loaded plugin reviewnotes, version v2.12.8
+[2018-07-19 22:59:28,646] [main] INFO  com.google.gerrit.server.plugins.PluginLoader : Loaded plugin singleusergroup, version v2.12.8
+[2018-07-19 22:59:29,053] [main] INFO  com.google.gerrit.server.change.ChangeCleanupRunner : Ignoring missing changeCleanup schedule configuration
+[2018-07-19 22:59:29,156] [main] INFO  com.google.gerrit.sshd.SshDaemon : Started Gerrit SSHD-CORE-0.14.0 on *:29418
+[2018-07-19 22:59:29,164] [main] INFO  org.eclipse.jetty.server.Server : jetty-9.2.13.v20150730
+[2018-07-19 22:59:30,077] [main] INFO  org.eclipse.jetty.server.handler.ContextHandler : Started o.e.j.s.ServletContextHandler@44da7eb3{/,null,AVAILABLE}
+[2018-07-19 22:59:30,087] [main] INFO  org.eclipse.jetty.server.ServerConnector : Started ServerConnector@5dfc2a4{HTTP/1.1}{0.0.0.0:8000}
+[2018-07-19 22:59:30,087] [main] INFO  org.eclipse.jetty.server.Server : Started @11499ms
+[2018-07-19 22:59:30,088] [main] INFO  com.google.gerrit.pgm.Daemon : Gerrit Code Review 2.12.8 ready
+^C
+gerrit@cicd-lab:~$ 
+~~~
+
+
+<h3>Setup CI job to verify the patch set</h3>
+
+Let's setup a job in jenkins to verify the new incoming patch set in gerrit.
+
+since we added the .gitreview file in the setup if we run **`git status`**  that will show up as new change.
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	.gitreview
+
+nothing added to commit but untracked files present (use "git add" to track)
+~~~
+
+we will have to create a new .gitignore file and update it ignore the .gitreview and other compiled files to be tracked by git for changes.
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ vim .gitignore
+~~~
+
+add the following content in there and save it
+
+~~~bash
+*.pyc
+.gitreview
+env
+flaskr.db
+~~~
+
+Now git will show .gitignore to be added to the staging and committed. Let's add it and commit the changes and submit this for review and see what happens.
+
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ git status
+On branch master
+Your branch is up-to-date with 'origin/master'.
+Untracked files:
+  (use "git add <file>..." to include in what will be committed)
+
+	.gitignore
+
+nothing added to commit but untracked files present (use "git add" to track)
+
+ubuntu@cicd-lab:~/demo-app$ git add .gitignore 
+ubuntu@cicd-lab:~/demo-app$ git commit -a -m "adding .gitignore"
+
+*** Please tell me who you are.
+
+Run
+
+  git config --global user.email "you@example.com"
+  git config --global user.name "Your Name"
+
+to set your account's default identity.
+Omit --global to set the identity only in this repository.
+
+fatal: unable to auto-detect email address (got 'ubuntu@cicd-lab.(none)')
+~~~
+
+Let's configue git and set the values
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ git config --global user.email "samurai6488@gmail.com"
+ubuntu@cicd-lab:~/demo-app$ git config --global user.name "sabs6488"
+ubuntu@cicd-lab:~/demo-app$ 
+ubuntu@cicd-lab:~/demo-app$ 
+ubuntu@cicd-lab:~/demo-app$ git commit -a -m "adding .gitignore"
+[master 00014fe] adding .gitignore
+ 1 file changed, 4 insertions(+)
+ create mode 100644 .gitignore
+ubuntu@cicd-lab:~/demo-app$ 
+~~~
+
+**`make sure to use your username and email ids :)`**
+
+Now, let's submit this change for review
+
+~~~bash
+ubuntu@cicd-lab:~/demo-app$ git review
+Could not connect to gerrit.
+Enter your gerrit username: sabdhagiri
+Trying again with ssh://sabdhagiri@172.16.101.23:29418/demo-app
+Creating a git remote called "gerrit" that maps to:
+	ssh://sabdhagiri@172.16.101.23:29418/demo-app
+
+This repository is now set up for use with git-review. You can set the
+default username for future repositories with:
+  git config --global --add gitreview.username "sabdhagiri"
+
+Your change was committed before the commit hook was installed.
+Amending the commit to add a gerrit change id.
+remote: Processing changes: new: 1, refs: 1, done            
+remote: 
+remote: New Changes:        
+remote:   http://172.16.101.23:8000/1 adding .gitignore        
+remote: 
+To ssh://sabdhagiri@172.16.101.23:29418/demo-app
+ * [new branch]      HEAD -> refs/publish/master
+~~~
+
+
+Now, this would've been submitted in gerrit a patch for review.
+
+![Alt image text](images/labs/ci/1.png)
+
+
+Let's setup a verify job in jenkins to verify the patch set.
+
+Since this application is written in python we will install the ShiningPanda jenkins plugin which will help setup virtualenv to test the application. Let's install the ShiningPanda plugin in Jenkins.
+
+![Alt image text](images/labs/ci/001.png)
+
+![Alt image text](images/labs/ci/002.png)
+
+Now, let's setup the verify job
+
+![Alt image text](images/labs/ci/2.png)
+
+
+
+![Alt image text](images/labs/ci/3.png)
+
+
+
+![Alt image text](images/labs/ci/4.png)
+
+
+
+![Alt image text](images/labs/ci/5.png)
+
+
+
+![Alt image text](images/labs/ci/6.png)
+
+
+
+![Alt image text](images/labs/ci/7.png)
+
+
+
+![Alt image text](images/labs/ci/8.png)
+
+
+
+![Alt image text](images/labs/ci/9.png)
+
+
+
+![Alt image text](images/labs/ci/10.png)
+
+
+
+![Alt image text](images/labs/ci/11.png)
+
+
+
+![Alt image text](images/labs/ci/12.png)
+
+
+
+![Alt image text](images/labs/ci/13.png)
+
+
+
+![Alt image text](images/labs/ci/14.png)
+
+
+
+![Alt image text](images/labs/ci/15.png)
+
+
+Now, lets query the gerrit triggers to see if there are any patch sets available and see if we have any jobs in Jenkins matching that condition which can be triggered.
+
+
+![Alt image text](images/labs/ci/16.png)
+
+
+
+![Alt image text](images/labs/ci/17.png)
+
+
+
+![Alt image text](images/labs/ci/18.png)
+
+
+
+![Alt image text](images/labs/ci/19.png)
+
+
+
+![Alt image text](images/labs/ci/20.png)
+
+
+
+![Alt image text](images/labs/ci/21.png)
+
+
+![Alt image text](images/labs/ci/22.png)
+
+
+The build failed because the jenkins server cannot build the depenedencies for the project as it is missing the **`python-dev`** package. Lets login to the jenkins container and install **`python-dev`** package and re-trigger the build.
+
+~~~bash
+ubuntu@cicd-lab:~$ docker exec -it -u root jenkins bash
+root@5a2f3d6d9005:/# apt-get install python-dev
+~~~
+
+Once the package is installed come back to jenkins and let's re-trigger it.
+
+![Alt image text](images/labs/ci/23.png)
+
+
+![Alt image text](images/labs/ci/24.png)
+
+Once jenkins successfully executes the demo-verify job, we can check the state of things on gerrit.
+
+![Alt image text](images/labs/ci/25.png)
+
+We can see the Verify column on our open changes is having a green tick indictaing the change has been successfully verified by Jenkins. We can inspect the details by clicking on the change.
+
+![Alt image text](images/labs/ci/26.png)
+
+Now, it is time for the code review process.
+
+In gerrit, by clicking on the patch set you can see what changed from the previous version. The reviewers can either acknowledge the change by giving a +2 score for the code review or reject it with a -2 etc.,
+
+for example now, we have added only the .gitignore file, you can click on the changed file to see the diff. and if you are happy with the changes you can give a +2 for code-review.
+
+![Alt image text](images/labs/ci/27.png)
+
+![Alt image text](images/labs/ci/28.png)
+
+![Alt image text](images/labs/ci/29.png)
+
+![Alt image text](images/labs/ci/30.png)
+
+
+Let's check the HEAD on gerrit and github before we submit the patch set.
+
+![Alt image text](images/labs/ci/31.png)
+
+![Alt image text](images/labs/ci/32.png)
+
+Once the patch set received a Code Review +2 we can see the CR column in the open changes page turn to a green tick symbol.
+
+![Alt image text](images/labs/ci/33.png)
+
+Now, the change can be submitted and we can see the updated HEAD on gerrit and the changes automatically replicated to github.
+
+![Alt image text](images/labs/ci/34.png)
+
+![Alt image text](images/labs/ci/35.png)
+
+![Alt image text](images/labs/ci/36.png)
+
+![Alt image text](images/labs/ci/37.png)
+
+
+
+
+Thus, the changes each and every developer makes and submits is continuously integrated to the upstream master while validating the changes by executing the test cases etc.,
+
+
+
+
+
+
+
+
+
+
+
+
+
