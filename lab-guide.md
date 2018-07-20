@@ -199,7 +199,7 @@ sub   4096R/F273FCD8 2017-02-22
 ubuntu@cicd-lab:~$ sudo add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
    $(lsb_release -cs) \
-   stable”
+   stable"
 
 ~~~
 
@@ -907,7 +907,21 @@ and add the following content in that and save it.
  authGroup = Replication
 ~~~
 
+
+
 **`Note: user your github account instead of sabs6488`**
+
+
+Also we have to configure proper access rights to the gerrit user who will perform the replication.
+
+![Alt image text](images/labs/setup-code/27.png)
+
+![Alt image text](images/labs/setup-code/28.png)
+
+![Alt image text](images/labs/setup-code/29.png)
+
+![Alt image text](images/labs/setup-code/30.png)
+
 
 restart gerrit and observe logs for successful startup.
 
@@ -1201,7 +1215,7 @@ Now, the change can be submitted and we can see the updated HEAD on gerrit and t
 Thus, the changes each and every developer makes and submits is continuously integrated to the upstream master while validating the changes by executing the test cases etc.,
 
 
-
+<h3>Setup CD job to build and publish docker image</h3>
 
 
 
