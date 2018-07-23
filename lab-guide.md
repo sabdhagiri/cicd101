@@ -22,6 +22,7 @@
 <h3>Setup gerrit</h3>
 
 <h5>1.1 Update systemand install pre-requisites</h5>
+
 <p>Before beginning with installing gerrit, we need to be sure that git is installed and set up on our server.
 If, by any chance, it is not already installed on your cloud server, you can get it quickly through apt-get:</p>
 
@@ -46,12 +47,13 @@ gerrit@cicd-lab:~$ pwd
 ~~~
 
 <h5>1.3 Download gerrit war file and verify java install</h5>
+
 <p>In order to work, gerrit requires Java to be installed on the server.</p>
 
 ~~~bash
 gerrit@cicd-lab:~$ wget https://www.gerritcodereview.com/download/gerrit-2.12.8.war -O gerrit.war
 
-gerrit@cicd-lab:~$ java –version
+gerrit@cicd-lab:~$ java --version
 
 Example Output:
 -------------------------------------------------------------------------------
@@ -63,6 +65,7 @@ OpenJDK 64-Bit Server VM (build 25.171-b11, mixed mode)
 ~~~
 
 <h5>1.4 Initialize gerrit code review site</h5>
+
 <p>By default gerrit runs on port 8080 and git ssh runs on 29418, if you want to change, open gerrit config file "vim ~/gerrit_server/etc/gerrit.config". In this example I prefer to use 8000 port instead of 8080</p>
 
 ~~~bash
@@ -408,7 +411,7 @@ ubuntu@cicd-lab:~$ docker exec -it -u root jenkins bash
 
 root@5a2f3d6d9005:~# apt-get update && apt-get -y install \
 apt-transport-https ca-certificates curl gnupg2 \
-software-properties-common
+software-properties-common vim python-dev
 
 root@5a2f3d6d9005:~# curl -fsSL https://download.docker.com/linux/$(. /etc/os-release; echo "$ID")/gpg > /tmp/dkey; apt-key add /tmp/dkey
 
@@ -419,6 +422,11 @@ root@5a2f3d6d9005:~# add-apt-repository \
 
 root@5a2f3d6d9005:~# apt-get update && \
 apt-get -y install docker-ce
+
+root@5a2f3d6d9005:~# curl -L https://github.com/docker/compose/releases/download/1.21.2/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+
+root@5a2f3d6d9005:~# chmod +x /usr/local/bin/docker-compose
+
 ~~~
 
 <h5>Login to the jenkins UI and complete the setup</h5>
@@ -562,12 +570,24 @@ Unable to negotiate with 172.16.101.23 port 29418: no matching key exchange meth
 We can overcome this no matching key exchange method by including a config file for the ssh.
 
 ~~~bash
-jenkins@5a2f3d6d9005:~$ echo "Host 172.16.101.23
->     Hostname 172.16.101.23
->     Port 29418
->     IdentityFile ~/.ssh/id_rsa
->     KexAlgorithms +diffie-hellman-group1-sha1" > ~/.ssh/config
+jenkins@5a2f3d6d9005:~$ vim ~/.ssh/config
+~~~
 
+and paste the following content into it
+
+~~~bash
+
+Host 172.16.101.23
+    Hostname 172.16.101.23
+    Port 29418
+    IdentityFile ~/.ssh/id_rsa
+    KexAlgorithms +diffie-hellman-group1-sha1
+
+~~~
+
+Now, verify access
+
+~~~bash
 jenkins@5a2f3d6d9005:~$ ssh jenkins_admin@172.16.101.23 -p 29418
 
 Example output:
@@ -624,7 +644,6 @@ As gerrit admin user we have to add the jenkins_admin user to the Non-Interactiv
 
 You can signup for a new Github account if you don't have one already
 
-**`TODO: Include screenshots from Mike's Lab guide content`**
 
 Once you login to your account
 
@@ -1493,12 +1512,11 @@ Let's edit our existing demo-build job in jenkins.
 Add Shell commands in "Execute Shell" section
 
 ~~~bash
-docker -H tcp://172.16.101.23:2376 --tlsverify stop demo || true && \
-docker -H tcp://172.16.101.23:2376 --tlsverify rm demo || true
+sed -i 's/sabdhagiri\/todo/sabs060488\/demo-app/' docker-compose.yml
 
-docker -H tcp://172.16.101.23:2376 --tlsverify \
-run -d -p 6488 --name demo \
-sabs060488/demo-app:1.0.$(BUILD_NUMBER)
+cat docker-compose.yml
+
+docker-compose -H tcp://172.16.101.23:2376 --tlsverify up -d
 ~~~
 
 
