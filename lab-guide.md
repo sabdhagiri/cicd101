@@ -18,18 +18,20 @@
 
 8. **[Setup CD job to deploy the services](#setup-cd-job-to-deploy-the-services)**
 
-
-
+<h3>Lab 1:</h3>
 <h3>Setup gerrit</h3>
 
-<h5>update systemand install pre-requisites</h5>
+<h5>1.1 Update systemand install pre-requisites</h5>
+<p>Before beginning with installing gerrit, we need to be sure that git is installed and set up on our server.
+If, by any chance, it is not already installed on your cloud server, you can get it quickly through apt-get:</p>
+
 
 ~~~bash
 ubuntu@cicd-lab:~$ sudo apt-get -y update
 ubuntu@cicd-lab:~$ sudo apt-get install git default-jdk wget -y
 ~~~
 
-<h5>create gerrit user</h5>
+<h5>1.2 create gerrit user</h5>
 
 ~~~bash
 ubuntu@cicd-lab:~$ sudo useradd -m gerrit
@@ -43,18 +45,25 @@ gerrit@cicd-lab:~$ pwd
 
 ~~~
 
-<h5>download gerrit war file and verify java install</h5>
+<h5>1.3 Download gerrit war file and verify java install</h5>
+<p>In order to work, gerrit requires Java to be installed on the server.</p>
 
 ~~~bash
 gerrit@cicd-lab:~$ wget https://www.gerritcodereview.com/download/gerrit-2.12.8.war -O gerrit.war
 
-gerrit@cicd-lab:~$ java -version
+gerrit@cicd-lab:~$ java –version
+
+Example Output:
+-------------------------------------------------------------------------------
 openjdk version "1.8.0_171"
 OpenJDK Runtime Environment (build 1.8.0_171-8u171-b11-0ubuntu0.16.04.1-b11)
 OpenJDK 64-Bit Server VM (build 25.171-b11, mixed mode)
+-------------------------------------------------------------------------------
+
 ~~~
 
-<h5>Initialize gerrit code review site</h5>
+<h5>1.4 Initialize gerrit code review site</h5>
+<p>By default gerrit runs on port 8080 and git ssh runs on 29418, if you want to change, open gerrit config file "vim ~/gerrit_server/etc/gerrit.config". In this example I prefer to use 8000 port instead of 8080</p>
 
 ~~~bash
 gerrit@cicd-lab:~$ java -jar gerrit.war init -d review_site
@@ -125,8 +134,8 @@ Generating SSH host key ... rsa(simple)... done
 Behind reverse proxy           [y/N]? 
 Use SSL (https://)             [y/N]? 
 Listen on address              [*]: 
-Listen on port                 [8080]: 
-Canonical URL                  [http://localhost:8080/]: http://172.16.101.23:8080/
+Listen on port                 [8000]: 
+Canonical URL                  [http://localhost:8000/]: http://172.16.101.23:8000/
 
 *** Plugins
 *** 
@@ -147,34 +156,43 @@ Waiting for server on 172.16.101.23:8080 ... OK
 Opening http://172.16.101.23:8080/#/admin/projects/ ...FAILED
 Open Gerrit with a JavaScript capable browser:
   http://172.16.101.23:8080/#/admin/projects/
-
 ~~~
 
-<h5>Register initial admin user</h5>
+<h5>1.5 Access Gerrit via http://your ip address:8000</h5>
 
+<h5>1.6 Register initial admin user</h5>
+
+<p>Click register link on right side top corner</p>
 
 ![Alt image text](images/labs/gerrit-setup/1.png)
 
+<h5>1.7 click signin through launchpad id or yahoo id. By default first register user is administrator.</h5>
 
 ![Alt image text](images/labs/gerrit-setup/2.png)
 
 
 ![Alt image text](images/labs/gerrit-setup/3.png)
 
+<h5>1.8 After successfull openid signin, you are redirecting to gerrit home page.</h5>
 
 ![Alt image text](images/labs/gerrit-setup/4.png)
 
+<h5>Set username. Note that username is permanent you cant change username further.</h5>
 
 ![Alt image text](images/labs/gerrit-setup/5.png)
 
-
 ![Alt image text](images/labs/gerrit-setup/6.png)
 
+<h5> Exit from Gerrit User</h5>
 
+~~~bash
+gerrit@cicd-lab:~$ exit
+~~~
 
+<h3>Lab 2:</h3>
 <h3>Setup docker runtime</h3>
 
-<h5>Install pre-requisites</h5>
+<h5>2.1 Install pre-requisites</h5>
 
 ~~~bash
 ubuntu@cicd-lab:~$ sudo apt-get install \
@@ -184,17 +202,25 @@ ubuntu@cicd-lab:~$ sudo apt-get install \
     software-properties-common
 ~~~
 
-<h5>add docker apt repository</h5>
+<h5>2.2 Add docker apt repository</h5>
 
 ~~~bash
 ubuntu@cicd-lab:~$ curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
+
+Example output:
+----------------
 OK
+----------------
 
 ubuntu@cicd-lab:~$ sudo apt-key fingerprint 0EBFCD88
+
+Example output:
+---------------------------------------------------------------------------
 pub   4096R/0EBFCD88 2017-02-22
       Key fingerprint = 9DC8 5822 9FC7 DD38 854A  E2D8 8D81 803C 0EBF CD88
 uid                  Docker Release (CE deb) <docker@docker.com>
 sub   4096R/F273FCD8 2017-02-22
+---------------------------------------------------------------------------
 
 ubuntu@cicd-lab:~$ sudo add-apt-repository \
    "deb [arch=amd64] https://download.docker.com/linux/ubuntu \
@@ -203,7 +229,7 @@ ubuntu@cicd-lab:~$ sudo add-apt-repository \
 
 ~~~
 
-<h5>Install docker-ce</h5>
+<h5>2.3 Install docker-ce</h5>
 
 ~~~bash
 ubuntu@cicd-lab:~$ sudo apt-get update
@@ -211,19 +237,22 @@ ubuntu@cicd-lab:~$ sudo apt-get update
 ubuntu@cicd-lab:~$ sudo apt-get install docker-ce
 
 ubuntu@cicd-lab:~$ sudo systemctl status docker.service
+
+Example output:
+---------------------------------------------------------------------------------------
 ● docker.service - Docker Application Container Engine
    Loaded: loaded (/lib/systemd/system/docker.service; enabled; vendor preset: enabled)
    Active: active (running) since Wed 2018-07-18 06:15:45 UTC; 38s ago
-
+---------------------------------------------------------------------------------------
 ~~~
 
-<h5>Add user to docker group to enable access</h5>
+<h5>2.4 Add user to docker group to enable access</h5>
 
 ~~~bash
 ubuntu@cicd-lab:~$ sudo usermod -aG docker ubuntu
 ~~~
 
-<h5>Secure the docker daemon with TLS to enable remote access</h5>
+<h5>2.5 Secure the docker daemon with TLS to enable remote access</h5>
 
 **Create directories to hold the certificates**
 
@@ -290,7 +319,7 @@ IP.1 = 172.16.101.23
 IP.2 = 127.0.0.1
 ~~~
 
-*`make sure the IP.1 is the ip of your vm`*
+<b>Note</b>: Make sure the IP.1 is the ip of your VM.
 
 **Create and sign client certificate**
 
@@ -359,16 +388,17 @@ ubuntu@cicd-lab:~$ sudo service docker stop
 ubuntu@cicd-lab:~$ sudo service docker start
 ~~~
 
+<h3>Lab 3:</h3>
 <h3>Setup Jenkins</h3>
 
-<h5>running jenkins as a container</h5>
+<h5>Running jenkins as a container</h5>
 
 *We can run Jenkins as a container for this lab. Since, Jenkins will running as a container we should also do some extra steps to expose the docker daemon on the host so Jenkins can run docker commands to build and push images to registry. We also need a docker client to connect to docker remote API on the docker host where we will deploy our services(in this case it will be the same host)*
 
 ~~~bash
 ubuntu@cicd-lab:~$ docker run -p 8080:8080 -p 50000:50000 \
 -d -v /var/run/docker.sock:/var/run/docker.sock \
-—name jenkins jenkins/jenkins:lts
+--name jenkins jenkins/jenkins:lts
 ~~~
 
 <h5>Install docker inside jenkins container</h5>
@@ -397,14 +427,21 @@ get the initialAdminPassword from the running container as follows:
 
 ~~~bash
 ubuntu@cicd-lab:~$ docker exec -it jenkins cat /var/jenkins_home/secrets/initialAdminPassword
+
+Example output:
+-----------------------------------
 e52fde25e4514afc8f86412541b39a48
+-----------------------------------
 ~~~
 
-copy the output(it will differ according to your setup)
+<p>copy the output(it will differ according to your setup).</p>
+<p>Access jenkins via web browser http://your_ip:8080 and paste the output key in jenkins GUI</p>
 
 ![Alt image text](images/labs/jenkins-setup/1.png)
 
 ![Alt image text](images/labs/jenkins-setup/2.png)
+
+![Alt image text](images/labs/jenkins-setup/003.PNG)
 
 ![Alt image text](images/labs/jenkins-setup/3.png)
 
@@ -414,15 +451,18 @@ copy the output(it will differ according to your setup)
 
 ![Alt image text](images/labs/jenkins-setup/6.png)
 
-
+<h3>Lab 4:</h3>
 <h3>Setup gerrit and jenkins integration</h3>
 
->Jenkins can be extended with the help of plugins. There are a vast number of plugins available to customize jenkins according to your requirement. We want to setup integration between jenkins and gerrit in order for jenkins to be aware of events happening in gerrit. Gerrit has a way to let user listen to the event stream and the gerrit trigger plugin leverage this feature of gerrit.
-
+Jenkins can be extended with the help of plugins. There are a vast number of plugins available to customize jenkins according to your requirement. We want to setup integration between jenkins and gerrit in order for jenkins to be aware of events happening in gerrit. Gerrit has a way to let user listen to the event stream and the gerrit trigger plugin leverage this feature of gerrit.
 
 <h5>Install gerrit trigger plugin in jenkins</h5>
 
 ![Alt image text](images/labs/jenkins-setup/7.png)
+
+<p>
+Install Jenkins <b>Gerrit trigger</b>, <b>Gerrit Verify Status Reporter</b> and <b>Gerrit Code Review</b> plugins. Click Manage Jenkins > Manage Plugins. Click <b>available</b> tab and search for plugins and click install.
+</p>
 
 ![Alt image text](images/labs/jenkins-setup/8.png)
 
@@ -441,8 +481,9 @@ copy the output(it will differ according to your setup)
 
 ![Alt image text](images/labs/gerrit-jenkins-intg/3.png)
 
-![Alt image text](images/labs/gerrit-jenkins-intg/4.png)
+<p>Configure jenkins for gerrit. Before that create user named <b>jenkins-admin</b> in gerrit and give event streaming access in project access section. So that via that user credential jenkins-admin can communicate with gerrit.</p>
 
+![Alt image text](images/labs/gerrit-jenkins-intg/4.png)
 
 We will have to setup jenkins user to connect to gerrit in order to tap into the gerrit event stream.
 
@@ -460,7 +501,7 @@ We will have to setup jenkins user to connect to gerrit in order to tap into the
 
 ![Alt image text](images/labs/gerrit-jenkins-intg/11.png)
 
-Ok, now it os time to create the ssh keys for the jenkins user, we will use the ssh identity of our jenkins user running in the jenkins container to link that account with the gerrit jenkins_admin user account. This will let jenkins connect to gerrit event stream over ssh and also pull code from gerrit and perform builds.
+Ok, now it is time to create the ssh keys for the jenkins user, we will use the ssh identity of our jenkins user running in the jenkins container to link that account with the gerrit jenkins_admin user account. This will let jenkins connect to gerrit event stream over ssh and also pull code from gerrit and perform builds.
 
 <h5>setup ssh keys for jenkins user</h5>
 
@@ -468,8 +509,11 @@ Create ssh keys for the jenkins user using ssh-keygen utility and copy the ssh p
 
 ~~~bash
 ubuntu@cicd-lab:~$ docker exec -it jenkins bash
+
 jenkins@5a2f3d6d9005:/$ cd
+
 jenkins@5a2f3d6d9005:~$ ssh-keygen -t rsa -b 2048
+
 Generating public/private rsa key pair.
 Enter file in which to save the key (/var/jenkins_home/.ssh/id_rsa): 
 Created directory '/var/jenkins_home/.ssh'.
@@ -491,9 +535,15 @@ The key's randomart image is:
 |         . . ..o |
 |            ..E  |
 +----[SHA256]-----+
-jenkins@5a2f3d6d9005:~$ cat ~/.ssh/id_rsa.pub 
+
+jenkins@5a2f3d6d9005:~$ cat ~/.ssh/id_rsa.pub
+
+Example output:
+---------------
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEobSdvr4D4D0JUwUQt0fKrK4tMaPlKoY0/Q6uHuwmhMWglWd9tIK+eF6HOe7pjaReEGZZgN6atJLEJzVgLMjLq1JQ4dVmOrMM8jtJmSA1LL3L0c4wsWuUKnoWcG6QGTlOSfQ8+ABkYNpjCQiTCBrIBeNMI3+7sSihWukrPykzzIFrozZejo6FM3At/RCxr1VlzTnbWqCtJsUyRjECMXc7cfMe0sSsU4QwiZqfb041/DODHUZrKunhKB8iUGkMj9SY4+KpJdhUCeE+US4bZmf5doBz/Cgef0qd9m2S7uEDpl+LZmTZ3UuSgG5Zg9I9nh02m1P3bktqFpJzyeVzNWb3 jenkins@5a2f3d6d9005
 ~~~
+
+Copy and paste the ssh keys in gerrit "Add SSH Public key" section.
 
 ![Alt image text](images/labs/gerrit-jenkins-intg/12.png)
 
@@ -503,10 +553,13 @@ We can verify the connectivity by trying to ssh into the gerrit server on port 2
 
 ~~~bash
 jenkins@5a2f3d6d9005:~$ ssh jenkins_admin@172.16.101.23 -p 29418
+
+Example output:
+---------------------------------------------------------------------------------------------------------------------------------
 Unable to negotiate with 172.16.101.23 port 29418: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1
 ~~~
 
-We can overcome this no matching key exchange method by including a config file for the ssh
+We can overcome this no matching key exchange method by including a config file for the ssh.
 
 ~~~bash
 jenkins@5a2f3d6d9005:~$ echo "Host 172.16.101.23
@@ -514,7 +567,11 @@ jenkins@5a2f3d6d9005:~$ echo "Host 172.16.101.23
 >     Port 29418
 >     IdentityFile ~/.ssh/id_rsa
 >     KexAlgorithms +diffie-hellman-group1-sha1" > ~/.ssh/config
+
 jenkins@5a2f3d6d9005:~$ ssh jenkins_admin@172.16.101.23 -p 29418
+
+Example output:
+-----------------------------------------------------------------------------------------------
 The authenticity of host '[172.16.101.23]:29418 ([172.16.101.23]:29418)' can't be established.
 RSA key fingerprint is SHA256:t0Lv1WRf9VTdenhSR0RY/7YMOL+NNsilC/9PS0zlDlU.
 Are you sure you want to continue connecting (yes/no)? yes
@@ -530,20 +587,25 @@ Warning: Permanently added '[172.16.101.23]:29418' (RSA) to the list of known ho
   git clone ssh://jenkins_admin@172.16.101.23:29418/REPOSITORY_NAME.git
 
 Connection to 172.16.101.23 closed.
+-----------------------------------------------------------------------------------------------
 ~~~
 
+<p>
+In Jenkins, click the button marked in red color i.e "Test Connection", it will activate your connection.</p>
 
 ![Alt image text](images/labs/gerrit-jenkins-intg/14.png)
 
 As gerrit admin user we have to add the jenkins_admin user to the Non-Interactive users group so jenkins can listen the the gerrit event stream.
 
-
-
 ![Alt image text](images/labs/gerrit-jenkins-intg/15.png)
+
+<p>Go to gerrit. Under People you can find List Groups. Click on it and select NON-Interactive Users.</p>
 
 ![Alt image text](images/labs/gerrit-jenkins-intg/16.png)
 
 ![Alt image text](images/labs/gerrit-jenkins-intg/17.png)
+
+<p>Add Jenkins email id as user under Members in Gerrit</p>
 
 ![Alt image text](images/labs/gerrit-jenkins-intg/18.png)
 
@@ -551,11 +613,12 @@ As gerrit admin user we have to add the jenkins_admin user to the Non-Interactiv
 
 ![Alt image text](images/labs/gerrit-jenkins-intg/20.png)
 
+</p>After adding the credentials click test connection.</p>
+
 ![Alt image text](images/labs/gerrit-jenkins-intg/21.png)
 
-
-
-<h3> Setup the code repository</h3>
+<h3>Lab 5</h3>
+<h3>Setup the code repository</h3>
 
 <h5>Setup up Github account and fork the demo-app repository</h5>
 
@@ -577,9 +640,9 @@ Once you find the repository, you can click on the repo to open it
 
 ![Alt image text](images/labs/setup-code/4.png)
 
-While you are on the repo page, you will see a `fork` button on the top right. Click the fork button to fork the repository on to your account. 
+While you are on the repo page, you will see a <b>fork</b> button on the top right. Click the fork button to fork the repository on to your account. 
 
-![Alt image text](images/labs/setup-code/5.png)
+<!-- ![Alt image text](images/labs/setup-code/5.png)-->
 
 wait for the repo to be forked
 
@@ -639,27 +702,26 @@ ubuntu@cicd-lab:~/demo-app$
 
 <h5>Create new project in gerrit for setting up the code review process</h5>
 
-`Let's login to gerrit as admin user and create new project with the same name as that of our github project(demo-project), we will need this to setup replication in later stages.`
+<p>Let's login to gerrit as admin user and create new project with the same name as that of our github project(demo-project), we will need this to setup replication in later stages.</p>
 
 ![Alt image text](images/labs/setup-code/8.png)
 
-
-
-`Project is created in gerrit. Now, click on access tab on the top to edit access rights for groups, we need to do this enable Non-Interactive Users to set Verified Label values(This will be used by Jenkins to setup scores) follow the steps below:`
+<p>Project is created in gerrit. Now, click on access tab on the top to edit access rights for groups, we need to do this enable Non-Interactive Users to set Verified Label values(This will be used by Jenkins to setup scores) follow the steps below:</p>
+<p> Click on <b>All-Projects</b> then click `Edit`.
 
 ![Alt image text](images/labs/setup-code/9.png)
 
-![Alt image text](images/labs/setup-code/10.png)
+<!--![Alt image text](images/labs/setup-code/10.png)-->
 
 ![Alt image text](images/labs/setup-code/11.png)
 
 ![Alt image text](images/labs/setup-code/12.png)
 
-![Alt image text](images/labs/setup-code/13.png)
+<!--![Alt image text](images/labs/setup-code/13.png)-->
 
 ![Alt image text](images/labs/setup-code/14.png)
 
-![Alt image text](images/labs/setup-code/15.png)
+<!--![Alt image text](images/labs/setup-code/15.png)-->
 
 ![Alt image text](images/labs/setup-code/16.png)
 
@@ -691,9 +753,10 @@ The key's randomart image is:
 |                 |
 |                 |
 +----[SHA256]-----+
+
 ubuntu@cicd-lab:~/demo-app$ cat ~/.ssh/id_rsa.pub 
+
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDoNhvR6ZgTzmubC+mmp9cPWe5+7K9mcaaV1/lyTrOl0of1PZJMD8Jor7+Y3kaMyCRROUmzeQm5Dnr2PH6O69/apx4TwvDbWxhKhVvPNFpWWL6DY/to0yda3BY+Xpa/eDMaa1Iy+bRKwDRlRSmJvcVJCO4N/58UVlP235OWhGUhng/tGNMuyXPcecWJgSe1xBLnyi2MQ1aUBdNO/CsCihMVJP9oKJQxNJP9CNxs7mKxW3pwgeNbF7xcgVzTCjIW8A6a0ukOSbUbiZ+YRvWdjxz3nEatw1fhqiAvPkjuliw5gC0SwVXmJcFBlJciR1fdWpyynaNynoKN03fQjYPr3Vyt ubuntu@cicd-lab
-ubuntu@cicd-lab:~/demo-app$
 ~~~
 
 copy the public key and add it to the admin account of gerrit. login to gerrit as admin user and do the following:
@@ -704,15 +767,17 @@ copy the public key and add it to the admin account of gerrit. login to gerrit a
 
 ![Alt image text](images/labs/setup-code/19.png)
 
-
-Now try to ssh from the development vm to gerrit on port 29418 with username as the admin user account.
+<p>Now try to ssh from the development vm to gerrit on port 29418 with username as the admin user account.</p>
 
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ ssh sabdhagiri@172.16.101.23 -p 29418
+
+Example output:
+---------------
 Unable to negotiate with 172.16.101.23 port 29418: no matching key exchange method found. Their offer: diffie-hellman-group1-sha1
 ~~~
 
-We will have to edit the ssh config file to include the Key exchange method config
+We will have to edit the ssh config file to include the Key exchange method config.
 
 create a new file called config at the following location 
 
@@ -720,7 +785,7 @@ create a new file called config at the following location
 ubuntu@cicd-lab:~/demo-app$ vim ~/.ssh/config
 ~~~
 
-and copy the following lines into it and save it
+And copy the following lines into it and save it
 
 ~~~bash
 Host 172.16.101.23
@@ -734,6 +799,9 @@ Now, ssh to gerrit should work just fine
 
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ ssh sabdhagiri@172.16.101.23 -p 29418
+
+Example output:
+-----------------------------------------------------------------------------------------------
 The authenticity of host '[172.16.101.23]:29418 ([172.16.101.23]:29418)' can't be established.
 RSA key fingerprint is SHA256:t0Lv1WRf9VTdenhSR0RY/7YMOL+NNsilC/9PS0zlDlU.
 Are you sure you want to continue connecting (yes/no)? yes
@@ -749,7 +817,7 @@ Warning: Permanently added '[172.16.101.23]:29418' (RSA) to the list of known ho
   git clone ssh://sabdhagiri@172.16.101.23:29418/REPOSITORY_NAME.git
 
 Connection to 172.16.101.23 closed.
-ubuntu@cicd-lab:~/demo-app$ 
+-----------------------------------------------------------------------------------------------
 ~~~
 
 Now, let's get the remote of the demo-app repo we created and push this code from local development tree to the gerrit remote.
@@ -761,13 +829,21 @@ grab the ssh url from the project general info and update the local development 
 
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ git remote -v
+
+Example output:
+----------------------------------------------------------
 origin	https://github.com/sabs6488/demo-app.git (fetch)
 origin	https://github.com/sabs6488/demo-app.git (push)
+----------------------------------------------------------
+
 ubuntu@cicd-lab:~/demo-app$ git remote set-url origin ssh://sabdhagiri@172.16.101.23:29418/demo-app
 ubuntu@cicd-lab:~/demo-app$ git remote -v
+
+Example output:
+----------------------------------------------------------------
 origin	ssh://sabdhagiri@172.16.101.23:29418/demo-app (fetch)
 origin	ssh://sabdhagiri@172.16.101.23:29418/demo-app (push)
-ubuntu@cicd-lab:~/demo-app$ 
+----------------------------------------------------------------
 ~~~
 
 Now its time to push the code into gerrit to upload the code.
@@ -790,8 +866,10 @@ We can verify the update by checking the HEAD version in our local development t
 
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ git rev-parse HEAD
+
+Example output:
+-----------------------------------------
 794a86648d0de460ac0ce5fce59961ac494de35b
-ubuntu@cicd-lab:~/demo-app$ 
 ~~~
 
 The above command gives the latest commit id make sure in gerrit branches master you see the commit id for HEAD
@@ -833,6 +911,7 @@ In order to do this we have to let gerrit push code to our github repo. Let's cr
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ sudo su gerrit
 gerrit@cicd-lab:/home/ubuntu/demo-app$ cd
+
 gerrit@cicd-lab:~$ ssh-keygen 
 Generating public/private rsa key pair.
 Enter file in which to save the key (/home/gerrit/.ssh/id_rsa): 
@@ -860,7 +939,7 @@ The key's randomart image is:
 Now copy the public key and add it to your user account in github under ssh keys section.
 
 ~~~bash
-gerrit@cicd-lab:~$ cat ~/.ssh/id_rsa.pub 
+gerrit@cicd-lab:~$ cat ~/.ssh/id_rsa.pub
 ssh-rsa AAAAB3NzaC1yc2EAAAADAQABAAABAQDEKymB9J85YucxMBtljiqd6N+r1ggBuZN+uP2EGlA+GVBAGFztZ/3c6cNf/GV7y5LvcH3gRlc+/02oe8fhDUfvDCLqhCixg8I/Z2BqFImcgS9y/nsnA/HUolfalu2y8zgqBPDRMiuK9wf1nArlM5ydCp544UuqykjkJ1SA0WyETN4/whdvwtthxr/zFtKGsewpXEkwSL0ylw6lvOTFv0vkQ/pqLine1tX13HmqJWLvtmW0QO5uKrl2wX+VTUiGASF4zrs9/ICAl3Xr9I6vtKkyKYNk3YRRakY+FgYQ2aMuRcwyrcEOTZkaWUDZeIj474OfxhDNTtBjLKS9l8c4lM13 gerrit@cicd-lab
 ~~~
 
@@ -907,10 +986,7 @@ and add the following content in that and save it.
  authGroup = Replication
 ~~~
 
-
-
 **`Note: user your github account instead of sabs6488`**
-
 
 Also we have to configure proper access rights to the gerrit user who will perform the replication.
 
@@ -928,10 +1004,10 @@ restart gerrit and observe logs for successful startup.
 ~~~bash
 gerrit@cicd-lab:~$ review_site/bin/gerrit.sh stop
 Stopping Gerrit Code Review: OK
-gerrit@cicd-lab:~$ 
-gerrit@cicd-lab:~$ 
+
 gerrit@cicd-lab:~$ review_site/bin/gerrit.sh start
 Starting Gerrit Code Review: OK
+
 gerrit@cicd-lab:~$ tail -f review_site/logs/error_log
 [2018-07-19 22:59:28,520] [main] INFO  com.google.gerrit.server.plugins.PluginLoader : Loaded plugin replication, version v2.12.8
 [2018-07-19 22:59:28,587] [main] INFO  com.google.gerrit.server.plugins.PluginLoader : Loaded plugin reviewnotes, version v2.12.8
@@ -943,11 +1019,10 @@ gerrit@cicd-lab:~$ tail -f review_site/logs/error_log
 [2018-07-19 22:59:30,087] [main] INFO  org.eclipse.jetty.server.ServerConnector : Started ServerConnector@5dfc2a4{HTTP/1.1}{0.0.0.0:8000}
 [2018-07-19 22:59:30,087] [main] INFO  org.eclipse.jetty.server.Server : Started @11499ms
 [2018-07-19 22:59:30,088] [main] INFO  com.google.gerrit.pgm.Daemon : Gerrit Code Review 2.12.8 ready
-^C
 gerrit@cicd-lab:~$ 
 ~~~
 
-
+<h3>Lab 6:</h3>
 <h3>Setup CI job to verify the patch set</h3>
 
 Let's setup a job in jenkins to verify the new incoming patch set in gerrit.
@@ -956,6 +1031,9 @@ since we added the .gitreview file in the setup if we run **`git status`**  that
 
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ git status
+
+Example output:
+--------------------------------------------------------------
 On branch master
 Your branch is up-to-date with 'origin/master'.
 Untracked files:
@@ -986,6 +1064,9 @@ Now git will show .gitignore to be added to the staging and committed. Let's add
 
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ git status
+
+Example output:
+-----------------------------------------------------------------------------
 On branch master
 Your branch is up-to-date with 'origin/master'.
 Untracked files:
@@ -994,10 +1075,13 @@ Untracked files:
 	.gitignore
 
 nothing added to commit but untracked files present (use "git add" to track)
+-----------------------------------------------------------------------------
 
 ubuntu@cicd-lab:~/demo-app$ git add .gitignore 
 ubuntu@cicd-lab:~/demo-app$ git commit -a -m "adding .gitignore"
 
+Example output:
+-----------------------------------------------------------------------------
 *** Please tell me who you are.
 
 Run
@@ -1009,6 +1093,7 @@ to set your account's default identity.
 Omit --global to set the identity only in this repository.
 
 fatal: unable to auto-detect email address (got 'ubuntu@cicd-lab.(none)')
+-----------------------------------------------------------------------------
 ~~~
 
 Let's configue git and set the values
@@ -1016,23 +1101,26 @@ Let's configue git and set the values
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ git config --global user.email "samurai6488@gmail.com"
 ubuntu@cicd-lab:~/demo-app$ git config --global user.name "sabs6488"
-ubuntu@cicd-lab:~/demo-app$ 
-ubuntu@cicd-lab:~/demo-app$ 
 ubuntu@cicd-lab:~/demo-app$ git commit -a -m "adding .gitignore"
+
+Example output:
+-----------------------------------------------
 [master 00014fe] adding .gitignore
  1 file changed, 4 insertions(+)
  create mode 100644 .gitignore
-ubuntu@cicd-lab:~/demo-app$ 
 ~~~
 
-**`make sure to use your username and email ids :)`**
+<b>Note:</b> **`make sure to use your username and email ids :)`**
 
 Now, let's submit this change for review
 
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ git review
+
+Example output:
+------------------------------------------------------------
 Could not connect to gerrit.
-Enter your gerrit username: sabdhagiri
+Enter your gerrit username: **`sabdhagiri`**
 Trying again with ssh://sabdhagiri@172.16.101.23:29418/demo-app
 Creating a git remote called "gerrit" that maps to:
 	ssh://sabdhagiri@172.16.101.23:29418/demo-app
@@ -1064,6 +1152,8 @@ Since this application is written in python we will install the ShiningPanda jen
 
 ![Alt image text](images/labs/ci/001.png)
 
+Search for "ShiningPanda" under available tab.
+
 ![Alt image text](images/labs/ci/002.png)
 
 Now, let's setup the verify job
@@ -1071,56 +1161,43 @@ Now, let's setup the verify job
 ![Alt image text](images/labs/ci/2.png)
 
 
-
 ![Alt image text](images/labs/ci/3.png)
-
 
 
 ![Alt image text](images/labs/ci/4.png)
 
 
-
 ![Alt image text](images/labs/ci/5.png)
-
 
 
 ![Alt image text](images/labs/ci/6.png)
 
 
-
 ![Alt image text](images/labs/ci/7.png)
-
 
 
 ![Alt image text](images/labs/ci/8.png)
 
 
-
 ![Alt image text](images/labs/ci/9.png)
-
 
 
 ![Alt image text](images/labs/ci/10.png)
 
 
-
 ![Alt image text](images/labs/ci/11.png)
-
 
 
 ![Alt image text](images/labs/ci/12.png)
 
 
-
 ![Alt image text](images/labs/ci/13.png)
-
 
 
 ![Alt image text](images/labs/ci/14.png)
 
 
-
-![Alt image text](images/labs/ci/15.png)
+<!--![Alt image text](images/labs/ci/15.png)-->
 
 
 Now, lets query the gerrit triggers to see if there are any patch sets available and see if we have any jobs in Jenkins matching that condition which can be triggered.
@@ -1209,31 +1286,28 @@ Now, the change can be submitted and we can see the updated HEAD on gerrit and t
 
 ![Alt image text](images/labs/ci/37.png)
 
-
-
-
 Thus, the changes each and every developer makes and submits is continuously integrated to the upstream master while validating the changes by executing the test cases etc.,
 
-
+<h3> Lab 7:</h3>
 <h3>Setup CD job to build and publish docker image</h3>
 
 
-1. create dockerhub account
-2. install docker related plugins in jenkins
-3. add dockerhub credentials and docker host certificate credentials in jenkins
-4. setup build job on gerrit event
+1. Create dockerhub account
+2. Install docker related plugins in jenkins
+3. Add dockerhub credentials and docker host certificate credentials in jenkins
+4. Setup build job on gerrit event
 
 <h5>Create dockerhub account</h5>
 
-**`TODO: Include screenshots from Mike's lab guid`**
+**`TODO: Include screenshots from Mike's lab guide`**
 
 <h5>Install docker related plugins in jenkins</h5>
-
-Check and see if you already have Cloudbees Docker build and publish plugin installed, if not install the plugins from the manage plugins page and search from available list and install.
 
 ![Alt image text](images/labs/cd/1.png)
 
 ![Alt image text](images/labs/cd/2.png)
+
+<p>Check and see if you already have `Ant Plugin`, `Build Timeout` and `Cloudbees Docker build and publish` plugin installed, if not install the plugins from the manage plugins page and search from available list and install.</p>
 
 ![Alt image text](images/labs/cd/003.png)
 
@@ -1294,6 +1368,8 @@ Create the build job as follows:
 
 ![Alt image text](images/labs/cd/14.png)
 
+Provide Repository name: `demo-app`, Tag: `1.0.${BUILD_NUMBER}`, Docker Host URI: `tcp:\\172.16.101.23:2376`, Server Credentials: `docker-certs-23` and Registry credentials.
+
 ![Alt image text](images/labs/cd/15.png)
 
 Now we can verify the build job by making a change in our app and submitting th code for review and then merge it to gerrit master by following the exact same steps we followed in the CI lab.
@@ -1307,7 +1383,7 @@ ubuntu@cicd-lab:~$ cd demo-app/
 ubuntu@cicd-lab:~/demo-app$ vim templates/login.html
 ~~~
 
-edit the *`login.html`* 
+Edit the *`login.html`* and change "Todo App" to "Demo App".
 from
 
 ![Alt image text](images/labs/cd/17.png)
@@ -1320,6 +1396,9 @@ Now save the file and submit the change for review by following the below steps:
 
 ~~~bash
 ubuntu@cicd-lab:~/demo-app$ git status
+
+Example output:
+-------------------------------------------------------------------------------
 On branch master
 Your branch is ahead of 'origin/master' by 1 commit.
   (use "git push" to publish your local commits)
@@ -1330,10 +1409,14 @@ Changes not staged for commit:
 	modified:   templates/login.html
 
 no changes added to commit (use "git add" and/or "git commit -a")
+-------------------------------------------------------------------------------
 
 ubuntu@cicd-lab:~/demo-app$ git add templates/login.html
 
 ubuntu@cicd-lab:~/demo-app$ git status
+
+Example output:
+-------------------------------------------------------------------------------
 On branch master
 Your branch is ahead of 'origin/master' by 1 commit.
   (use "git push" to publish your local commits)
@@ -1341,12 +1424,17 @@ Changes to be committed:
   (use "git reset HEAD <file>..." to unstage)
 
 	modified:   templates/login.html
+-------------------------------------------------------------------------------
 
 ubuntu@cicd-lab:~/demo-app$ git commit -a -m "Changed the title in login page"
+Example output:
+---------------------------------------------------------
 [master 4b0888f] Changed the title in login page
  1 file changed, 2 insertions(+), 2 deletions(-)
  
 ubuntu@cicd-lab:~/demo-app$ git fetch
+Example output:
+---------------------------------------------------------
 From ssh://172.16.101.23:29418/demo-app
    794a866..ed8407e  master     -> origin/master
 
@@ -1354,6 +1442,9 @@ ubuntu@cicd-lab:~/demo-app$ git rebase origin master
 Current branch master is up to date.
 
 ubuntu@cicd-lab:~/demo-app$ git review
+
+Example output:
+------------------------------------------------------------------------
 remote: Processing changes: new: 1, refs: 1, done            
 remote: 
 remote: New Changes:        
@@ -1383,8 +1474,7 @@ Check tags in the DockerHub demo-app repo before and after the merge.
 
 This concludes the Continuous Delivery lab to continuously create docker image make it readily available for anyone deploy it from DockerHub.
 
-
-
+<h3>Lab 8:</h3>
 <h3>Setup CD job to deploy the services</h3>
 
 Now, lets update our demo-build job in jenkins to also deploy the docker image to a docker host, when a change is accepted and merged into master branch.
@@ -1398,6 +1488,19 @@ Let's edit our existing demo-build job in jenkins.
 ![Alt image text](images/labs/cd/27.png)
 
 ![Alt image text](images/labs/cd/28.png)
+
+
+Add Shell commands in "Execute Shell" section
+
+~~~bash
+docker -H tcp://172.16.101.23:2376 --tlsverify stop demo || true && \
+docker -H tcp://172.16.101.23:2376 --tlsverify rm demo || true
+
+docker -H tcp://172.16.101.23:2376 --tlsverify \
+run -d -p 6488 --name demo \
+sabs060488/demo-app:1.0.$(BUILD_NUMBER)
+~~~
+
 
 ![Alt image text](images/labs/cd/29.png)
 
@@ -1427,21 +1530,3 @@ ubuntu@cicd-lab:~/demo-app$ git rebase origin master
 ubuntu@cicd-lab:~/demo-app$ git review
 
 ~~~
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
