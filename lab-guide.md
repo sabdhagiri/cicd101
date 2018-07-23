@@ -1311,15 +1311,6 @@ Thus, the changes each and every developer makes and submits is continuously int
 <h3>Setup CD job to build and publish docker image</h3>
 
 
-1. Create dockerhub account
-2. Install docker related plugins in jenkins
-3. Add dockerhub credentials and docker host certificate credentials in jenkins
-4. Setup build job on gerrit event
-
-<h5>Create dockerhub account</h5>
-
-**`TODO: Include screenshots from Mike's lab guide`**
-
 <h5>Install docker related plugins in jenkins</h5>
 
 ![Alt image text](images/labs/cd/1.png)
