@@ -51,9 +51,9 @@ gerrit@cicd-lab:~$ pwd
 <p>In order to work, gerrit requires Java to be installed on the server.</p>
 
 ~~~bash
-gerrit@cicd-lab:~$ wget https://www.gerritcodereview.com/download/gerrit-2.12.8.war -O gerrit.war
+gerrit@cicd-lab:~$ wget https://gerrit-releases.storage.googleapis.com/gerrit-2.12.8.war -O gerrit.war
 
-gerrit@cicd-lab:~$ java --version
+gerrit@cicd-lab:~$ java -version
 
 Example Output:
 -------------------------------------------------------------------------------
