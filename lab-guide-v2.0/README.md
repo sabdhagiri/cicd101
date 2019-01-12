@@ -11,6 +11,28 @@ For this course, one vm is being used as a all-in-one host. This VM is where the
 3. Run Docker runtime
 4. Run Jenkins
 
+<h4> Demo Application overview </h4>
+
+The application is a simple todo application written in python using the Flask framework with templating using html and javascript, there is no persistent storage and sqlite database is used for demo purposes.
+
+The application will look like this
+
+![](screenshots/labII/todo-1.png)
+
+![](screenshots/labII/todo-2.png)
+
+![](screenshots/labII/todo-3.png)
+
+![](screenshots/labII/todo-4.png)
+
+![](screenshots/labII/todo-5.png)
+
+
+Once we make changes the application will look like this
+
+![](screenshots/labII/todo-6.png)
+
+![](screenshots/labII/todo-7.png)
 
 
 <h4> Fork the demo application from Gtihub </h4>
@@ -50,7 +72,6 @@ For this course, one vm is being used as a all-in-one host. This VM is where the
 1. This section is to get yourself familiar with some of the docker commands that will be used for the rest of the labs.
 2. Login to your vm if you are not already in it.
 3. execute the following command to check if you have access to the docker client
-
 	~~~bash
 	docker info
 	~~~
