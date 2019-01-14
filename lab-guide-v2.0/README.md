@@ -148,14 +148,14 @@ For this course, Gerrit, docker and Jenkins have been pre-installed on the VM.
 
 Add the follwoing code
 
-	~~~
+	
 	  [label "Verified"]
       function = MaxWithBlock
       value = -1 Fails
       value = 0 No score
       value = +1 Verified
       copyAllScoresIfNoCodeChange = true
-	~~~
+	
 
 
 
