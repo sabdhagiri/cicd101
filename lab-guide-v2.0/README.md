@@ -53,6 +53,7 @@ Once we make changes the application will look like this
 
 ![](screenshots/labI/git-6.png)
 
+![](screenshots/labI/git-7.png)
 
 
 <h2> Clone the application from Github to local workstation </h2>
@@ -195,3 +196,289 @@ docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
 ![](screenshots/jenkins/boot-jenkins-6.png)
 
 ![](screenshots/jenkins/boot-jenkins-7.png)
+
+<h2> Setup Gerrit - Jenkins integration </h2>
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-1.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-2.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-3.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-4.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-5.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-6.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-7.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-8.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-9.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-10.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-11.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-12.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-13.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-14.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-15.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-16.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-17.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-18.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-19.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-20.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-21.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-22.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-23.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-24.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-25.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-26.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-27.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-28.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-29.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-30.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-31.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-32.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-33.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-34.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-35.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-36.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-37.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-38.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-39.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-40.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-41.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-42.png)
+
+![](screenshots/gerrit-jenkins/gerrit-jenkins-43.png)
+
+<h2> Setup Gerrit repo using forked code </h2>
+
+Setup the Gerrit repository to enable code review
+
+~~~bash
+ssh-keygen -t rsa -b 2048 
+cat ~/.ssh/id_rsa.pub
+cd demo-app/
+git remote -v
+git remote set-url origin ssh://admin@192.168.56.103:29418/demo-app
+
+git rev-parse HEAD
+
+sudo su gerrit
+
+ssh-keygen -t rsa -b 2048
+
+ssh git@github.com
+
+[remote "github"]
+ url = git@github.com:sabs6488/${name}.git
+ push = +refs/heads/*:refs/heads/*
+ push = +refs/tags/*:refs/tags/*
+ timeout = 5
+ replicationDelay = 0
+ authGroup = Replication
+ 
+./review_site/bin/gerrit.sh stop
+./review_site/bin/gerrit.sh start
+
+
+~~~
+
+
+![](screenshots/setup-code/setup-code-1.png)
+
+![](screenshots/setup-code/setup-code-2.png)
+
+![](screenshots/setup-code/setup-code-3.png)
+
+![](screenshots/setup-code/setup-code-4.png)
+
+![](screenshots/setup-code/setup-code-5.png)
+
+![](screenshots/setup-code/setup-code-6.png)
+
+![](screenshots/setup-code/setup-code-7.png)
+
+![](screenshots/setup-code/setup-code-8.png)
+
+![](screenshots/setup-code/setup-code-9.png)
+
+![](screenshots/setup-code/setup-code-10.png)
+
+![](screenshots/setup-code/setup-code-11.png)
+
+![](screenshots/setup-code/setup-code-12.png)
+
+![](screenshots/setup-code/setup-code-13.png)
+
+![](screenshots/setup-code/setup-code-14.png)
+
+![](screenshots/setup-code/setup-code-15.png)
+
+![](screenshots/setup-code/setup-code-16.png)
+
+![](screenshots/setup-code/setup-code-17.png)
+
+![](screenshots/setup-code/setup-code-18.png)
+
+![](screenshots/setup-code/setup-code-19.png)
+
+![](screenshots/setup-code/setup-code-20.png)
+
+![](screenshots/setup-code/setup-code-21.png)
+
+![](screenshots/setup-code/setup-code-22.png)
+
+![](screenshots/setup-code/setup-code-23.png)
+
+![](screenshots/setup-code/setup-code-24.png)
+
+![](screenshots/setup-code/setup-code-25.png)
+
+
+
+<h2> Setup a Continuous Integration job to verify the patch set </h2>
+
+1. Create a verification job in Jenkins to trigger a job on new patch set created event in Gerrit.
+2. Make a change to the source code from the VM and submit the code for review using the `git review` option. 
+3. Validate the build job to see if it is getting triggered on a new patch set created event.
+4. Add a new .gitignore file and check if the Jenkins build job is getting triggered.
+
+
+![](screenshots/setup-ci/setup-ci-1.png)
+
+![](screenshots/setup-ci/setup-ci-2.png)
+
+![](screenshots/setup-ci/setup-ci-3.png)
+
+![](screenshots/setup-ci/setup-ci-4.png)
+
+![](screenshots/setup-ci/setup-ci-5.png)
+
+![](screenshots/setup-ci/setup-ci-6.png)
+
+![](screenshots/setup-ci/setup-ci-7.png)
+
+![](screenshots/setup-ci/setup-ci-8.png)
+
+![](screenshots/setup-ci/setup-ci-9.png)
+
+![](screenshots/setup-ci/setup-ci-10.png)
+
+![](screenshots/setup-ci/setup-ci-11.png)
+
+![](screenshots/setup-ci/setup-ci-12.png)
+
+![](screenshots/setup-ci/setup-ci-13.png)
+
+![](screenshots/setup-ci/setup-ci-14.png)
+
+![](screenshots/setup-ci/setup-ci-15.png)
+
+![](screenshots/setup-ci/setup-ci-16.png)
+
+![](screenshots/setup-ci/setup-ci-17.png)
+
+![](screenshots/setup-ci/setup-ci-18.png)
+
+![](screenshots/setup-ci/setup-ci-19.png)
+
+![](screenshots/setup-ci/setup-ci-20.png)
+
+![](screenshots/setup-ci/setup-ci-21.png)
+
+![](screenshots/setup-ci/setup-ci-22.png)
+
+![](screenshots/setup-ci/setup-ci-23.png)
+
+![](screenshots/setup-ci/setup-ci-24.png)
+
+![](screenshots/setup-ci/setup-ci-25.png)
+
+![](screenshots/setup-ci/setup-ci-26.png)
+
+![](screenshots/setup-ci/setup-ci-27.png)
+
+![](screenshots/setup-ci/setup-ci-28.png)
+
+![](screenshots/setup-ci/setup-ci-29.png)
+
+![](screenshots/setup-ci/setup-ci-30.png)
+
+![](screenshots/setup-ci/setup-ci-31.png)
+
+![](screenshots/setup-ci/setup-ci-32.png)
+
+![](screenshots/setup-ci/setup-ci-33.png)
+
+![](screenshots/setup-ci/setup-ci-34.png)
+
+![](screenshots/setup-ci/setup-ci-35.png)
+
+![](screenshots/setup-ci/setup-ci-36.png)
+
+<h2> Setup Continuous delivery and deployment </h2>
+
+1. This section will show how to build a new docker container image when change is reviewed and merged to master branch in gerrit and also it will trigger the deployment job which will deploy the updated image to docker environment.
+2. In Jenkins, create a new freestyle project called `demo-build` build the image on new Gerrit change merged event.
+3. In order to trigger this job, a new patch set needs to be created, verified and merged in Gerrit.
+4. For demo purposes, in the code there are three files which can be renamed to change the look and feel of the top header.
+5. cd into the working directory
+	
+	~~~bash
+	cd demo-app
+	
+	git fetch
+	
+	mv templates/login_v1.html templates/login.html
+	
+	mv templates/index_v1.html templates/index.html
+	
+	mv static/style_v1.css static/style.css
+	
+	git add templates/login.html templates/index.html static/style.css
+	
+	git commit -a -m "Updating the style of the Application header"
+	
+	git fetch
+	
+	git rebase origin master
+	
+	git review
+	
+	~~~
+6. 
