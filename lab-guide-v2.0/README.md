@@ -108,3 +108,69 @@ The typical flow will be as follows:
 
 ![CI/CD workflow](flow.png)
 
+
+<h2> Setup Overview </h2>
+
+For this course, Gerrit, docker and Jenkins have been pre-installed on the VM.
+
+<h2> Gerrit bootstrap </h2>
+
+1. Navigate to gerrit
+
+![](screenshots/gerrit/gerrit-boot-1.png)
+
+2. Configure admin user email
+
+	
+![](screenshots/gerrit/gerrit-boot-2.png)
+
+![](screenshots/gerrit/gerrit-boot-3.png)
+
+![](screenshots/gerrit/gerrit-boot-4.png)
+
+![](screenshots/gerrit/gerrit-boot-5.png)
+
+![](screenshots/gerrit/gerrit-boot-6.png)
+
+![](screenshots/gerrit/gerrit-boot-7.png)
+
+3. enable Verified label for all projects to be used by Jenkins
+
+
+
+![](screenshots/gerrit/gerrit-boot-8.png)
+
+![](screenshots/gerrit/gerrit-boot-9.png)
+
+![](screenshots/gerrit/gerrit-boot-10.png)
+
+![](screenshots/gerrit/gerrit-boot-11.png)
+
+Add the follwoing code
+
+	~~~
+	  [label "Verified"]
+      function = MaxWithBlock
+      value = -1 Fails
+      value = 0 No score
+      value = +1 Verified
+      copyAllScoresIfNoCodeChange = true
+	~~~
+
+
+
+![](screenshots/gerrit/gerrit-boot-12.png)
+
+![](screenshots/gerrit/gerrit-boot-13.png)
+
+![](screenshots/gerrit/gerrit-boot-14.png)
+
+![](screenshots/gerrit/gerrit-boot-15.png)
+
+![](screenshots/gerrit/gerrit-boot-16.png)
+
+![](screenshots/gerrit/gerrit-boot-17.png)
+
+![](screenshots/gerrit/gerrit-boot-18.png)
+
+
