@@ -174,3 +174,24 @@ Add the follwoing code
 ![](screenshots/gerrit/gerrit-boot-18.png)
 
 
+<h2> Bootstrap Jenkins </h2>
+
+![](screenshots/jenkins/boot-jenkins-1.png)
+
+Get the initailAdminPassword from the jenkins container by executing the following command in the vm
+
+~~~bash
+docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
+~~~
+
+![](screenshots/jenkins/boot-jenkins-2.png)
+
+![](screenshots/jenkins/boot-jenkins-3.png)
+
+![](screenshots/jenkins/boot-jenkins-4.png)
+
+![](screenshots/jenkins/boot-jenkins-5.png)
+
+![](screenshots/jenkins/boot-jenkins-6.png)
+
+![](screenshots/jenkins/boot-jenkins-7.png)
