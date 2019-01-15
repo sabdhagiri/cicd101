@@ -2,15 +2,15 @@
 
 <h1> Index </h1>
 
-1. Introduction
-2. Demo Application overview
-3. Bootstrap Gerrit
-4. Bootstrap Jenkins
-5. Setup Gerrit - Jenkins integration
-6. Setup local development tree
-7. Setup Gerrit for code reviews
-8. Setup Continuous Integration job in Jenkins
-9. Setup Continuous Deployment job in Jenkins
+1. [Introduction](#introduction)
+2. [Demo Application overview](#demo-application-overview)
+3. [Bootstrap Gerrit](#bootstrap-gerrit)
+4. [Bootstrap Jenkins](#bootstrap-jenkins)
+5. [Setup Gerrit - Jenkins integration](#setup-gerrit---jenkins-integration)
+6. [Setup local development tree](#setup-local-development-tree)
+7. [Setup Gerrit for code reviews](#setup-gerrit-for-code-reviews)
+8. [Setup Continuous Integration job in Jenkins](#setup-continuous-integration-job-in-jenkins)
+9. [Setup Continuous Deployment job in Jenkins](#setup-continuous-deployment-job-in-jenkins)
 10. Verify and Validate CI/CD pipeline for incremental changes
 11. Q&A
 
@@ -49,6 +49,11 @@ The application will look like this
 
 
 Once we make changes the application will look like this
+
+: Before changes                  |    | After changes:
+----------------------------------|----|-----------------------------------
+![](screenshots/labII/todo-1.png) |  ![](https://cdn3.iconfinder.com/data/icons/faticons/32/arrow-right-01-512.png)  | ![](screenshots/labII/todo-6.png)
+
 
 ![](screenshots/labII/todo-6.png)
 
@@ -314,7 +319,7 @@ The typical flow will be as follows:
 
 
 
-<h2> Setup Gerrit repo using forked code </h2>
+<h2> Setup Gerrit for code reviews </h2>
 
 Setup the Gerrit repository to enable code review
 
@@ -401,7 +406,7 @@ ssh git@github.com
 
 **[Back to top](#)**
 
-<h2> Setup a Continuous Integration job to verify the patch set </h2>
+<h2> Setup Continuous Integration job in Jenkins </h2>
 
 1. Create a verification job in Jenkins to trigger a job on new patch set created event in Gerrit.
 2. Make a change to the source code from the VM and submit the code for review using the `git review` option. 
@@ -483,7 +488,7 @@ ssh git@github.com
 
 **[Back to top](#)**
 
-<h2> Setup Continuous deployment job</h2>
+<h2> Setup Continuous deployment job in Jenkins</h2>
 
 1. This section will show how to build a new docker container image when change is reviewed and merged to master branch in gerrit and also it will trigger the deployment job which will deploy the updated image to docker environment.
 2. In Jenkins, create a new freestyle project called `demo-build` build the image on new Gerrit change merged event.
@@ -516,3 +521,10 @@ ssh git@github.com
 
 
 **[Back to top](#)**
+
+
+<h2> Verify and Validate CI/CD pipeline for incremental changes </h2>
+
+
+
+<h2> Q&A </h2>
