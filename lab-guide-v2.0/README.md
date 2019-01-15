@@ -1,27 +1,44 @@
-<h1> CI/CD lab guide </h1>
+<h1>CI/CD lab guide</h1>
 
-<h1> Index </h1>
+<h1>Index</h1>
 
 1. [Introduction](#introduction)
 2. [Demo Application overview](#demo-application-overview)
-3. [Bootstrap Gerrit](#bootstrap-gerrit)
-4. [Bootstrap Jenkins](#bootstrap-jenkins)
+3. [Gerrit Configuration](#gerrit-configuration)
+4. [Jenkins Configuration](#jenkins-configuration)
 5. [Setup Gerrit - Jenkins integration](#setup-gerrit---jenkins-integration)
 6. [Setup local development tree](#setup-local-development-tree)
 7. [Setup Gerrit for code reviews](#setup-gerrit-for-code-reviews)
 8. [Setup Continuous Integration job in Jenkins](#setup-continuous-integration-job-in-jenkins)
 9. [Setup Continuous Deployment job in Jenkins](#setup-continuous-deployment-job-in-jenkins)
-10. Verify and Validate CI/CD pipeline for incremental changes
-11. Q&A
+10. [Verify and Validate CI/CD pipeline for incremental changes](#)
+11. [Q&A](#)
+
+
+--------------------------------------
+
 
 
 <h2>Introduction</h2>
 
+High level overview of different components of the lab and what students will be doing in each section are as follows:
+
+1. Login to Github and fork the demo application code.
+2. Login to the VM and clone the application code to the VM.
+3. Use the pre-installed docker runtime on the VM to build the application image.
+4. Run the application as a docker container and use if to get a feel for the sample application.
+5. Login to pre-installled Gerrit instance running in the VM and complete the setup.
+6. Login to pre-installed Jenkins instance running in the VM and complete the setup.
+7. Configure Gerrit and Jenkins to enable integration between the two.
+8. Configure the VM to setup local development tree and use it for submitting patches in Gerrit.
+9. Create a job in Jenkins to verify the patch set submitted to Gerrit.
+10. Make a change to the code and verify the CI job execution.
+11. Create a job in Jenkins to build and deploy container image when a change is merged to Gerrit master.
+12. Manual code-review and merge the change to master in Gerrit and verify the CD job execution.
+13. Make incremental changes and verify automatic deployment of the application.
 
 
-
-
-For this course, one vm is being used as an all-in-one host. Students will use this for the following:
+For this class, one VM is being used as an all-in-one host. Students will use this for the following:
 
 1. Make development changes to the application code
 2. Run Gerit
@@ -31,6 +48,8 @@ For this course, one vm is being used as an all-in-one host. Students will use t
 
 **[Back to top](#)**
 
+----------------------------------
+
 <h2>Demo Application overview</h2>
 
 The application is a simple todo application written in python using the Flask framework with templating using html and javascript, there is no persistent storage and sqlite database is used for demo purposes.
@@ -39,36 +58,33 @@ The application will look like this
 
 ![](screenshots/labII/todo-1.png)
 
-![](screenshots/labII/todo-2.png)
-
-![](screenshots/labII/todo-3.png)
-
-![](screenshots/labII/todo-4.png)
-
-![](screenshots/labII/todo-5.png)
-
-
 Once we make changes the application will look like this
+
+![](screenshots/labII/todo-6.png)
 
 **Before changes**   |    | **After changes**
 ---------------------|----|-----------------------------------
 ![](screenshots/labII/todo-1.png) |  ![](https://cdn3.iconfinder.com/data/icons/faticons/32/arrow-right-01-512.png)  | ![](screenshots/labII/todo-6.png)
 
 
-![](screenshots/labII/todo-6.png)
-
-![](screenshots/labII/todo-7.png)
-
-
 **[Back to top](#)**
 
-<h2>Bootstrap Gerrit</h2>
+----------------------------------
 
-1. Navigate to gerrit
+<h2>Gerrit Configuration</h2>
+
+1. Navigate to gerrit and login with the admin user account and password.
+
+	for this lab we have two user accounts pre-provisioned `admin/devops` and `jenkins/devops`
 
 ![](screenshots/gerrit/gerrit-boot-1.png)
 
 2. Configure admin user email
+
+	* Once you login click on the top right corner on the username and click on settings to open the user profile for user `admin`
+	* On the profile page which opens next click on the contact information section in the menu which appears on the left.
+	* On the Contact information screen click on **Register New Email..** button and type in the email id on which you want to receive emails. You can enter a real email id because Gerrit needs to verify and validate the user before it could let them make changes.
+	* Once an email id has been registered, you can check your inbox and click on the verification link.
 
 	
 ![](screenshots/gerrit/gerrit-boot-2.png)
@@ -83,49 +99,72 @@ Once we make changes the application will look like this
 
 ![](screenshots/gerrit/gerrit-boot-7.png)
 
+
+
 3. enable Verified label for all projects to be used by Jenkins
 
-
-
-![](screenshots/gerrit/gerrit-boot-8.png)
-
-![](screenshots/gerrit/gerrit-boot-9.png)
-
-![](screenshots/gerrit/gerrit-boot-10.png)
-
-![](screenshots/gerrit/gerrit-boot-11.png)
-
-Add the follwoing code
-
+	* Once your email id is verified, you will have access to make changes to the project config.
+	* In Gerrit you have to enable `Label: Verified` so that Jenkins can update the score after executing the verification job as part of the CI lab which will follow after this.
+	* Click on `projects` on the top navigation bar
 	
+		![](screenshots/gerrit/gerrit-boot-8.png)
+		
+	* Click on `List` and select `All-Projects` from the list that shows up.
+	
+		![](screenshots/gerrit/gerrit-boot-10.png)
+		
+	* Click on `Edit config` button on the bottom and you will see something like below
+
+		 ![](screenshots/gerrit/gerrit-boot-11.png)
+		 
+	* Add the following code near the end of the file:
+	
+	  ```
 	  [label "Verified"]
       function = MaxWithBlock
       value = -1 Fails
       value = 0 No score
       value = +1 Verified
       copyAllScoresIfNoCodeChange = true
+	  ```
+
+	* Now the file will look like this:
+
+		![](screenshots/gerrit/gerrit-boot-12.png)
+	* Click on `Save` on the top of the file
+
+		![](screenshots/gerrit/gerrit-boot-13.png)
+		
+	* You will see something like the below, Gerrit actually tracks this change in the `git` repository created for `All-Projects` and you have to `Publish` the change before it could become effective
+
+		![](screenshots/gerrit/gerrit-boot-14.png)
+		
+		click on the `Publish Edit` button and then `Publish` button
+
+		![](screenshots/gerrit/gerrit-boot-15.png)
+		
+	* Now you will be shown `Code-Review+2` button. 
 	
-
-
-
-![](screenshots/gerrit/gerrit-boot-12.png)
-
-![](screenshots/gerrit/gerrit-boot-13.png)
-
-![](screenshots/gerrit/gerrit-boot-14.png)
-
-![](screenshots/gerrit/gerrit-boot-15.png)
-
-![](screenshots/gerrit/gerrit-boot-16.png)
-
-![](screenshots/gerrit/gerrit-boot-17.png)
-
-![](screenshots/gerrit/gerrit-boot-18.png)
+		![](screenshots/gerrit/gerrit-boot-16.png)
+		
+	* When you accept the change by clicking on `Code-Review+2` button you are automatically giving a +2 score for `Label: Code-Review` and qualifying the change to be merged to `master` branch.  
+	
+		![](screenshots/gerrit/gerrit-boot-17.png)
+		  	
+	* Once you click on the `Submit` button this is how you typically accept the change and merge it to master  
+	
+		![](screenshots/gerrit/gerrit-boot-18.png)
+		
+	**Congratulations, on reviewing your first change in Gerrit**
 
 
 **[Back to top](#)**
 
-<h2>Bootstrap Jenkins</h2>
+----------------------------------
+
+<h2>Jenkins Configuration</h2>
+
+1. Access Jenkins
 
 ![](screenshots/jenkins/boot-jenkins-1.png)
 
@@ -520,7 +559,7 @@ ssh git@github.com
 	~~~
 
 
-**[Back to top](#)**
+ **[Back to top](#)**
 
 
 <h2>Verify and Validate CI/CD pipeline for incremental changes</h2>
