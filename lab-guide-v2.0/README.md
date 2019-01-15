@@ -29,7 +29,7 @@ For this course, one vm is being used as an all-in-one host. Students will use t
 4. Run Jenkins
 
 
-**[Back to top](#index)**
+**[Back to top](#)**
 
 <h2> Demo Application overview </h2>
 
@@ -55,7 +55,7 @@ Once we make changes the application will look like this
 ![](screenshots/labII/todo-7.png)
 
 
-**[Back to top](#index)**
+**[Back to top](#)**
 
 <h2> Bootstrap Gerrit </h2>
 
@@ -118,7 +118,7 @@ Add the follwoing code
 ![](screenshots/gerrit/gerrit-boot-18.png)
 
 
-**[Back to top](#index)**
+**[Back to top](#)**
 
 <h2> Bootstrap Jenkins </h2>
 
@@ -142,7 +142,7 @@ docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
 
 ![](screenshots/jenkins/boot-jenkins-7.png)
 
-**[Back to top](#index)**
+**[Back to top](#)**
 
 <h2> Setup Gerrit - Jenkins integration </h2>
 
@@ -233,7 +233,7 @@ docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-43.png)
 
 
-**[Back to top](#index)**
+**[Back to top](#)**
 
 <h2> Setup local development tree </h2>
 
@@ -399,7 +399,7 @@ ssh git@github.com
 ![](screenshots/setup-code/setup-code-25.png)
 
 
-**[Back to top](#index)**
+**[Back to top](#)**
 
 <h2> Setup a Continuous Integration job to verify the patch set </h2>
 
@@ -481,7 +481,7 @@ ssh git@github.com
 
 ![](screenshots/setup-ci/setup-ci-36.png)
 
-**[Back to top](#index)**
+**[Back to top](#)**
 
 <h2> Setup Continuous deployment job</h2>
 
@@ -515,4 +515,4 @@ ssh git@github.com
 	~~~
 
 
-**[Back to top](#index)**
+**[Back to top](#)**
