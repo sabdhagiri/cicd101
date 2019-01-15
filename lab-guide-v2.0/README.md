@@ -31,7 +31,7 @@ For this course, one vm is being used as an all-in-one host. Students will use t
 
 **[Back to top](#)**
 
-<h2> Demo Application overview </h2>
+<h2>Demo Application overview</h2>
 
 The application is a simple todo application written in python using the Flask framework with templating using html and javascript, there is no persistent storage and sqlite database is used for demo purposes.
 
@@ -50,8 +50,8 @@ The application will look like this
 
 Once we make changes the application will look like this
 
-: Before changes                  |    | After changes:
-----------------------------------|----|-----------------------------------
+**Before changes**   |    | **After changes**
+---------------------|----|-----------------------------------
 ![](screenshots/labII/todo-1.png) |  ![](https://cdn3.iconfinder.com/data/icons/faticons/32/arrow-right-01-512.png)  | ![](screenshots/labII/todo-6.png)
 
 
@@ -62,7 +62,7 @@ Once we make changes the application will look like this
 
 **[Back to top](#)**
 
-<h2> Bootstrap Gerrit </h2>
+<h2>Bootstrap Gerrit</h2>
 
 1. Navigate to gerrit
 
@@ -125,7 +125,7 @@ Add the follwoing code
 
 **[Back to top](#)**
 
-<h2> Bootstrap Jenkins </h2>
+<h2>Bootstrap Jenkins</h2>
 
 ![](screenshots/jenkins/boot-jenkins-1.png)
 
@@ -149,7 +149,7 @@ docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
 
 **[Back to top](#)**
 
-<h2> Setup Gerrit - Jenkins integration </h2>
+<h2>Setup Gerrit - Jenkins integration</h2>
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-1.png)
 
@@ -240,7 +240,7 @@ docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
 
 **[Back to top](#)**
 
-<h2> Setup local development tree </h2>
+<h2>Setup local development tree</h2>
 
 
 <h4> Fork the demo application from Github </h4>
@@ -307,7 +307,7 @@ docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
 	~~~
 9. Now the application is running in a container and serving requests at `http://<your-pod-ip>:9000`
 
-<h2> Process Overview </h2>
+<h2>Process Overview</h2>
 
 The objective of this course is to automate the above steps using tools like Gerrit, Jenkins, Docker and Github by using integration plugins and process pipelines.
 
@@ -319,7 +319,7 @@ The typical flow will be as follows:
 
 
 
-<h2> Setup Gerrit for code reviews </h2>
+<h2>Setup Gerrit for code reviews</h2>
 
 Setup the Gerrit repository to enable code review
 
@@ -406,7 +406,7 @@ ssh git@github.com
 
 **[Back to top](#)**
 
-<h2> Setup Continuous Integration job in Jenkins </h2>
+<h2>Setup Continuous Integration job in Jenkins</h2>
 
 1. Create a verification job in Jenkins to trigger a job on new patch set created event in Gerrit.
 2. Make a change to the source code from the VM and submit the code for review using the `git review` option. 
@@ -488,7 +488,7 @@ ssh git@github.com
 
 **[Back to top](#)**
 
-<h2> Setup Continuous deployment job in Jenkins</h2>
+<h2>Setup Continuous deployment job in Jenkins</h2>
 
 1. This section will show how to build a new docker container image when change is reviewed and merged to master branch in gerrit and also it will trigger the deployment job which will deploy the updated image to docker environment.
 2. In Jenkins, create a new freestyle project called `demo-build` build the image on new Gerrit change merged event.
@@ -523,8 +523,8 @@ ssh git@github.com
 **[Back to top](#)**
 
 
-<h2> Verify and Validate CI/CD pipeline for incremental changes </h2>
+<h2>Verify and Validate CI/CD pipeline for incremental changes</h2>
 
 
 
-<h2> Q&A </h2>
+<h2>Q&A</h2>
