@@ -164,31 +164,44 @@ Once we make changes the application will look like this
 
 <h2>Jenkins Configuration</h2>
 
-1. Access Jenkins
+1. Jenkins runs as a docker container in the VM.
+2. Jenkins needs to be intialized and configured for use.
+3. Jenkins will have default admin user provisioned while setup and a random password will be generated for this user and stored at `/var/jenkins_home/secrets/initialAdminPassword`.
+4. Since, Jenkins runs as a container this password can obtained by executing the below command on the VM
 
-![](screenshots/jenkins/boot-jenkins-1.png)
+	~~~bash
+	docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
+	~~~
+	
+5. Copy the password and paste it in the next screen
 
-Get the initailAdminPassword from the jenkins container by executing the following command in the vm
+	![](screenshots/jenkins/boot-jenkins-1.png)
 
-~~~bash
-docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
-~~~
+	Get the initailAdminPassword from the jenkins container by executing the following command in the VM
 
-![](screenshots/jenkins/boot-jenkins-2.png)
+	![](screenshots/jenkins/boot-jenkins-2.png)
+	
+6. Install suggested plugins by clicking on the suggested plugins button
+	
+	![](screenshots/jenkins/boot-jenkins-3.png)
+	
+	![](screenshots/jenkins/boot-jenkins-4.png)
+	
+7. Once the plugins are installed create the first admin user and in the screen that follows click on `Save and Finish` to complete the initial setup
 
-![](screenshots/jenkins/boot-jenkins-3.png)
+	![](screenshots/jenkins/boot-jenkins-5.png)
 
-![](screenshots/jenkins/boot-jenkins-4.png)
+	![](screenshots/jenkins/boot-jenkins-6.png)
 
-![](screenshots/jenkins/boot-jenkins-5.png)
-
-![](screenshots/jenkins/boot-jenkins-6.png)
-
-![](screenshots/jenkins/boot-jenkins-7.png)
+	![](screenshots/jenkins/boot-jenkins-7.png)
 
 **[Back to top](#)**
 
+-----------------------------------
+
 <h2>Setup Gerrit - Jenkins integration</h2>
+
+1. 
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-1.png)
 
