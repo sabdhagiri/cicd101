@@ -170,7 +170,7 @@ Once we make changes the application will look like this
 4. Since, Jenkins runs as a container this password can obtained by executing the below command on the VM
 
 	~~~bash
-	docker exec jenkins cat /etc/jenkins_home/initialAdminPassword
+	docker exec jenkins cat /var/jenkins_home/secrets/initialAdminPassword
 	~~~
 	
 5. Copy the password and paste it in the next screen
@@ -201,15 +201,31 @@ Once we make changes the application will look like this
 
 <h2>Setup Gerrit - Jenkins integration</h2>
 
-1. 
+1. Jenkins connects to Gerrit using the service account which has been pre-provisioned for this class.
+2. Authentication between Jenkins and Gerrti is facilitated with the help of SSH keys. 
+3. Jenkins will use the SSH keypair which will be created in the Jenkins container. follow the steps to create the SSH keypair for the Jenkins user.
+
+	~~~bash
+	docker exec jenkins mkdir /var/jenkins_home/.ssh
+	
+	docker exec jenkins ssh-keygen -t rsa -b 2048 -f /var/jenkins_home/.ssh/id_rsa -N ''
+
+	~~~
+	
+	The above code will create a directory to hold the SSH keypair and generate a private-public keypair signed using rsa algorithm.
+4. Now copy the public key of the keypair and update the profile information for `jenkins` user in Gerrit
+	
+	~~~bash
+	docker exec jenkins cat /var/jenkins_home/.ssh/id_rsa.pub
+	~~~
+5. Login to Gerrit as user `jenkins` with password `devops` and follow similar steps to setup email id as you did for `admin` user
+
+
+6. Once that is done, paste the SSH `id_rsa.pub` public key which you obtained from the Jenkins container in step `4` and save your information by clicking on `add` and then click on `continue`
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-1.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-2.png)
-
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-3.png)
-
-![](screenshots/gerrit-jenkins/gerrit-jenkins-4.png)
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-5.png)
 
@@ -220,6 +236,9 @@ Once we make changes the application will look like this
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-8.png)
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-9.png)
+
+7. Login as Gerrit `admin` user in another incognito window or private browsing session.
+8. Configure group membership for the `jenkins` user by clickingg on `People` tab in the top navigation bar and select `List Groups`, select `Non-Interactive Users` and add `jenkins` to that group by following the below steps
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-10.png)
 
@@ -233,64 +252,104 @@ Once we make changes the application will look like this
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-15.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-16.png)
+9. Now that, `jenkins` is added to `Non-Interactive Users` group, this group should be configured with proper access rights to Stream Gerrit events to know when new events happen in Gerrit, this is the key feature in Gerrit which Jenkins leverage to trigger build jobs. Also, we need access rights to the `jenkins` user to submit score for `Label: Verified`. Access rights can be configured by following the steps below
+10. Click on `Projects` on top navigation menu and select `List` to see available projects
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-17.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-16.png)
+	
+11. Click on `All-Projects` and then select `Access` from the top navigation bar.
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-18.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-17.png)
+	
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-18.png)
+	
+12. Once in the Access page click on `Edit` button and you will be given option to add permissions to different contexts of the project and allow permissions to groups.
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-19.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-19.png)
+	
+13. Stream Events permission is allowed for `Non-Interactive Users` group by default in Gerrit.
+14. Just select `Add Permission` dropdown menu under section `References: refs/*`
+15. In the dropdown menu select `Label Verified` and then add the `Non-Interactive Users` group and `Save Changes` by clicking on the button in the bottom.
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-20.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-20.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-21.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-21.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-22.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-22.png)
+	
+16. This will solve one piece of the puzzle, now Jenkins needs some mechanism to connect to Gerrit in order to listen to the event stream. Jenkins uses a plugin to connect to Gerrit and trigger jobs based on the events it listen from Gerrit.
+17. Login to Jenkins, and click on `Manage Jenkins` option on the left navigation pane.
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-23.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-24.png)
+	
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-25.png)
+	
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-26.png)
+	
+18. In the screen that follows, click on `Manage Plugins`
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-24.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-27.png)
+	
+	
+19. Select `Available` tab in the next screen and click on the `Filter` on the right above the tab box and type in `gerrit`
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-25.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-28.png)
+	
+	
+	
+20. You will see a filtered list of Gerrit related plugins which can be installed to Jenkins to extend the functionality.
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-26.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-29.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-27.png)
+21. Select `Gerrit Trigger` plugin and others are optional. Other Gerrit plugins are not used for this class.
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-28.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-30.png)
+	
+22. Once the selection is done, click on `Download now and install after restart` and you will see Jenkins will be downloading the plugins.
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-29.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-31.png)
+	
+		
+23. Select the `Restart Jenkins when installation is complete and no jobs are running` this will ensure all plugins will be installed and the restart wouldn't interupt any running jobs.
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-30.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-32.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-31.png)
+24. Once Jenkins is restarted click on `Manage Jenkins` option on the left navigation pane.
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-32.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-33.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-33.png)
+25. You will a new option called `Gerrit Trigger` in the next screen, click on it
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-34.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-34.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-35.png)
+26. In the screen that follows, click on `Add New Server` and fill in the form as shown in the screenshots, be sure to use the IP addresses of the VMs assigned to you for `Hostname` and `Frontend URL` fields on the form
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-36.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-35.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-37.png)
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-36.png)
+
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-37.png)
+
+27. Test the connection to the server by clicking on the `Test Connection` button.
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-38.png)
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-39.png)
 
-![](screenshots/gerrit-jenkins/gerrit-jenkins-40.png)
+28. Save the config by clicking on the `Save` button at the bottom of the screen.
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-41.png)
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-42.png)
 
+29. Click on the `Status` red icon to see if turning to blue upon successful connection, this indicates that there are no connection issues between Gerrit and Jenkins.
+
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-43.png)
 
 
 **[Back to top](#)**
+
+---------------------------------
 
 <h2>Setup local development tree</h2>
 
