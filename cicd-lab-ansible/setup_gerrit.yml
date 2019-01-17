@@ -1,0 +1,105 @@
+---
+- hosts: gerrit
+  vars_files: 
+    - vars/gerrit.yml
+    - vars/postfix.yml
+  tasks:
+  - debug: var=ansible_all_ipv4_addresses
+  - debug: var=ansible_default_ipv4.address
+
+  - name: Update apt cache
+    apt:
+      update_cache: yes
+
+  - name: install pre-requisites
+    apt:
+      name: "{{ packages }}"
+    vars:
+      packages:
+      - default-jdk
+      - wget
+      - apache2
+      - mailutils
+      - libsasl2-modules
+      - postfix
+
+  - name: enable apache2 mod_proxy
+    apache2_module: name=proxy_http state=present
+    notify:
+      - restart apache2
+
+  - name: Create gerrit admin user
+    shell: htpasswd -b -c /etc/apache2/htpasswd.users admin devops
+
+  - name: Create gerrit jenkins user
+    shell: htpasswd -b -m /etc/apache2/htpasswd.users jenkins devops
+
+  - name: add virtualhost entry for gerrit
+    template: src=templates/apache-virtualhost.conf dest=/etc/apache2/sites-available/000-default.conf
+    notify:
+      - restart apache2
+
+  - name: setup postfix sasl_passwd
+    template: src=templates/sasl_passwd dest=/etc/postfix/sasl_passwd
+
+  - name: map sasl_passwd
+    shell: postmap /etc/postfix/sasl_passwd
+    become: yes
+
+  - file:
+      path: /etc/postfix/sasl_passwd
+      owner: postfix
+      group: postfix
+      mode: 0600
+  
+  - name: setup postfix config
+    template: src=templates/postfix.cf dest=/etc/postfix/main.cf
+    notify:
+      - restart postfix
+
+  - name: create gerrit user
+    user:
+      name: gerrit
+      shell: /bin/bash
+
+  - name: Download gerrit.war
+    shell: cd /home/gerrit && wget https://gerrit-releases.storage.googleapis.com/gerrit-2.12.8.war -O gerrit.war
+    become: yes
+    become_user: gerrit
+
+  - name: Initialize gerrit site
+    shell: cd /home/gerrit && java -jar gerrit.war init -d review_site --batch --no-auto-start --install-plugin=reviewnotes --install-plugin=replication --install-plugin=commit-message-length-validator --install-plugin=download-commands --install-plugin=singleusergroup 
+    become: yes
+    become_user: gerrit
+
+  - name: Update gerrit auth method in gerrit.config
+    ini_file:
+      path: /home/gerrit/review_site/etc/gerrit.config
+      section: auth
+      option: type
+      value: HTTP
+
+  - name: Update gerrit HTTP listen URL in gerrit.config
+    ini_file:
+      path: /home/gerrit/review_site/etc/gerrit.config
+      section: httpd
+      option: listenUrl
+      value: proxy-http://*:{{ gerrit_port }}/
+
+  - name: Update gerrit Canonical URL in gerrit.config
+    ini_file:
+      path: /home/gerrit/review_site/etc/gerrit.config
+      section: gerrit
+      option: canonicalWebUrl
+      value: http://{{ inventory_hostname }}/gerrit/
+
+  - name: Start Gerrit service
+    shell: cd /home/gerrit/review_site/bin && ./gerrit.sh start
+    become: yes
+    become_user: gerrit
+
+  handlers:
+  - name: restart apache2
+    service: name=apache2 state=restarted
+  - name: restart postfix
+    service: name=postfix state=restarted

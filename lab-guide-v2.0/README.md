@@ -212,6 +212,19 @@ Once we make changes the application will look like this
 
 	~~~
 	
+	Gerrit offers a different kexAlgorithm so the SSH client on the docker container needs to know about the KeyExchange Algorith Gerrit will offer. We will puth this in a config file.
+	
+	~~~bash
+	docker exec -it jenkins bash
+	
+	echo "Host 192.168.56.103
+    Hostname 192.168.56.103
+    Port 29418
+    IdentityFile /var/jenkins_home/.ssh/id_rsa
+    KexAlgorithms +diffie-hellman-group1-sha1" >> /var/jenkins_home/.ssh/config
+	
+	~~~
+	
 	The above code will create a directory to hold the SSH keypair and generate a private-public keypair signed using rsa algorithm.
 4. Now copy the public key of the keypair and update the profile information for `jenkins` user in Gerrit
 	
@@ -418,178 +431,350 @@ Once we make changes the application will look like this
 	~~~
 9. Now the application is running in a container and serving requests at `http://<your-pod-ip>:9000`
 
-<h2>Process Overview</h2>
 
-The objective of this course is to automate the above steps using tools like Gerrit, Jenkins, Docker and Github by using integration plugins and process pipelines.
-
-When a new change is made to the development tree, it needs to be integrated to the master as and when it is tested and validated.
-
-The typical flow will be as follows:
-
-![CI/CD workflow](flow.png)
 
 
 
 <h2>Setup Gerrit for code reviews</h2>
 
-Setup the Gerrit repository to enable code review
+1. Gerrit needs to configured so that the repo cloneed from Github can be loaded Gerrit and Gerrit can be used to review and Jenkins to validate the changes before it gets pushed to Github.
+2. The process is as follows 
+		
+	The objective of this course is to automate the above steps using tools like Gerrit, Jenkins, Docker and Github by using integration plugins and process pipelines.
 
-~~~bash
-ssh-keygen -t rsa -b 2048 
-cat ~/.ssh/id_rsa.pub
-cd demo-app/
-git remote -v
-git remote set-url origin ssh://admin@192.168.56.103:29418/demo-app
+	When a new change is made to the development tree, it needs to be integrated to the master as and when it is tested and validated.
 
-git rev-parse HEAD
+	The typical flow will be as follows:
 
-sudo su gerrit
+	![CI/CD workflow](flow.png)
+		
+3. Login to Gerrit as `admin` user and create a new project called `demo-app`
 
-ssh-keygen -t rsa -b 2048
+	![](screenshots/setup-code/setup-code-1.png)
 
-ssh git@github.com
+	![](screenshots/setup-code/setup-code-2.png)
 
-[remote "github"]
- url = git@github.com:sabs6488/${name}.git
- push = +refs/heads/*:refs/heads/*
- push = +refs/tags/*:refs/tags/*
- timeout = 5
- replicationDelay = 0
- authGroup = Replication
- 
-./review_site/bin/gerrit.sh stop
-./review_site/bin/gerrit.sh start
+	![](screenshots/setup-code/setup-code-3.png)
+	
+4. Login to the VM and cd into the `demo-app` directory, which will be the root of the repo you cloned earlier.
+5. You can check the git remote by typing in the following command
 
+	~~~bash
+	git remote -v
+	~~~
+	
+	![](screenshots/setup-code/setup-code-4.png)
+	
+6. Install the `git-review` utility which can be used to submit patch sets to gerrit for code reviews
 
-~~~
+	~~~bash
+	sudo apt-get install git-review
+	~~~
 
+7. Now, configure a new remote to your git repo and set the project url of the project which you created in Gerrit for `demo-app`.
 
-![](screenshots/setup-code/setup-code-1.png)
+	Get the project url by logging into Gerrit and clicking on `All-Projects` > `List` > `demo-app` and you will find the project URL under clone section select `ssh` on the right corener of the clone section get the ssh URL for the `demo-app` project.
+	
+	![](screenshots/setup-code/setup-code-5.png)
+	
+8. In you VM terminal configure the git remote with following command:
 
-![](screenshots/setup-code/setup-code-2.png)
+	~~~bash
+	git remote add gerrit ssh://admin@192.168.56.103:29418/demo-app
+	~~~
+	
+	![](screenshots/setup-code/setup-code-6.png)
+	
+9. Now that your local development tree knows where your Gerrit is, it is time to push the code to Gerrit to enable code reviews. In order to do that, Gerrit needs to autheticate you to be able to, allow you to push the code. Gerrit allows two ways to push the code, one is over `http/s` and other is over `ssh`. In order to use SSH the user needs to authenticate themselves using a SSH key.
 
-![](screenshots/setup-code/setup-code-3.png)
+10. Generate a SSH key pair in your VM so that it can be used by the `admin` user to authenticate against Gerrit whenever you push code or submit patch set.
 
-![](screenshots/setup-code/setup-code-4.png)
+	~~~bash
+	ssh-keygen -t rsa -b 2048
+	~~~
+	
+11. Now login to Gerrit as `admin` user and add this SSH public key.
 
-![](screenshots/setup-code/setup-code-5.png)
+	copy the public key from VM by executing the command 
+	
+	~~~bash
+	cat ~/.ssh/id_rsa.pub
+	~~~
+	
+	![](screenshots/setup-code/setup-code-7.png)
 
-![](screenshots/setup-code/setup-code-6.png)
+	and add it to Gerrit SSH keys section for `admin` user
+	
+	![](screenshots/setup-code/setup-code-8.png)
+	
+	![](screenshots/setup-code/setup-code-9.png)
+	
+12. Gerrit uses a different key exchange algorithm for SSH and this needs to be informed to the SSH client via a config file. (make sure to use the IP address of your Gerrit instance)
 
-![](screenshots/setup-code/setup-code-7.png)
+	~~~bash
+	echo "Host 192.168.56.103
+    Hostname 192.168.56.103
+    Port 29418
+    IdentityFile ~/.ssh/id_rsa
+    KexAlgorithms +diffie-hellman-group1-sha1" >> ~/.ssh/config 
+	~~~	
+	
+13. Now, if you try to SSH into the Gerrit server using following command you should see a message.
 
-![](screenshots/setup-code/setup-code-8.png)
+	~~~bash
+	ssh admin@192.168.56.103 -p 29418
+	~~~
+	
+	![](screenshots/setup-code/setup-code-10.png)
+	
+14. The user account is now configured to push code and we can upload the code for `demo-app` by pushing it to *`master`* branch in Gerrit. You can push the code by executing the following command:
 
-![](screenshots/setup-code/setup-code-9.png)
+	~~~bash
+	git push gerrit master
+	~~~
+	
+	and this will push the code that we clone from Github into Gerrit.
+	
+	![](screenshots/setup-code/setup-code-11.png)
+	![](screenshots/setup-code/setup-code-12.png)
+	
 
-![](screenshots/setup-code/setup-code-10.png)
+15. **Note of Gerrit access control**
 
-![](screenshots/setup-code/setup-code-11.png)
+	* The overall idea is to have Github as upstream code repo used only for `fetch/pull`
+	
+	* Any new change to the code will be submited in Gerrit as a patch set, gets validated, tested, reviewed and then accepted.
+	
+	* Once the change is accepted and merged, Jenkins will Deploy the build(in the case of automated deployments).
+	
+	* Only the Gerrit user will have *write* access in Github and all other developers will have only *read* access enabling them to fetch updates but not push directly bypassing Gerrit.
+	
+	* On Gerrit, the access is controlled with the help of Groups, each project can inherit its access control policies from other projects or manage their own.
+	
+	* Users can be added to multiple groups, by default the first user who logs into the system after initializing the Gerrit site will become `admin`
+	
+	* The `admin` user as the name implies can administer Projects, Groups, People, Access, Plugins etc.,
+	
+	* All other users will be part of `Registered Users` groups and they will have standard access. The access is managed using distinct `Permissions` getting assigned to different `Groups` for different `References` or as a `Global Capability`
 
-![](screenshots/setup-code/setup-code-12.png)
+16. As mentioned earlier, if Gerrit needs to write the changes to Github, we need some sort of Replication mechanism to sync the code changes that is available in Gerrit. Gerrit offers a built-in `Replication` plugin to do that.
 
-![](screenshots/setup-code/setup-code-13.png)
+17. This `Replication` plugin needs to be configured in Gerrit and SSH keys are needed for the Gerrit user to *push* changes to Github via SSH.
 
-![](screenshots/setup-code/setup-code-14.png)
+18. Login to VM and become the `gerrit` user by typing 
 
-![](screenshots/setup-code/setup-code-15.png)
+	~~~bash
+	sudo su gerrit
+	~~~
+	
+19. Generate a SSH keypair by running
 
-![](screenshots/setup-code/setup-code-16.png)
+	~~~bash
+	ssh-keygen -t rsa -b 2048
+	~~~
+	
+20. Copy the SSH public key with
 
-![](screenshots/setup-code/setup-code-17.png)
+	~~~bash
+	cat ~/.ssh/id_rsa.pub
+	~~~
+	
+21. Login to your Github account and add this SSH key under `Settings` > `SSH and GPG keys` and `New SSH key` and paste your key and save it by clicking `Add SSH key`
 
-![](screenshots/setup-code/setup-code-18.png)
+	![](screenshots/setup-code/setup-code-13.png)
+	![](screenshots/setup-code/setup-code-14.png)
+	![](screenshots/setup-code/setup-code-15.png)
+	![](screenshots/setup-code/setup-code-16.png)
+	
 
-![](screenshots/setup-code/setup-code-19.png)
+22. Switch back to your VM and as `gerrit` user validate the access by trying to SSH into github.com
 
-![](screenshots/setup-code/setup-code-20.png)
+	~~~bash
+	sudo su gerrit
+	
+	ssh git@github.com
+	~~~
+	
+	you should be greeted with a message from Github.com without any shell access.
+	
+	![](screenshots/setup-code/setup-code-17.png)
+	
+23. Now that, SSH key has been added for the `gerrit` user to login to Github with SSH, the same account can be used to configure the `Replication` plugin in Gerrit.
 
-![](screenshots/setup-code/setup-code-21.png)
+24. Create a file called `replication.config` in `/home/gerrit/review_site/etc/` directory and add the following content, be sure to replace the github account according to your use.
 
-![](screenshots/setup-code/setup-code-22.png)
+	~~~bash
+	[remote "github"]
+ 	 url = git@github.com:sabs6488/${name}.git
+ 	 push = +refs/heads/*:refs/heads/*
+ 	 push = +refs/tags/*:refs/tags/*
+ 	 timeout = 5
+ 	 replicationDelay = 0
+ 	 authGroup = Replication
+	~~~
+	
+25. Create a group in Gerrit called `Replication` and add the admin user to it.
 
-![](screenshots/setup-code/setup-code-23.png)
+	![](screenshots/setup-code/setup-code-18.png)
+	![](screenshots/setup-code/setup-code-19.png)
+	![](screenshots/setup-code/setup-code-20.png)
 
-![](screenshots/setup-code/setup-code-24.png)
+26. Also, the projects should allow the `Replication` group members to`Start Replication` and `Read` from all refs.
 
-![](screenshots/setup-code/setup-code-25.png)
+	![](screenshots/setup-code/setup-code-21.png)
+	![](screenshots/setup-code/setup-code-22.png)
+	![](screenshots/setup-code/setup-code-23.png)
+	![](screenshots/setup-code/setup-code-24.png)
+	![](screenshots/setup-code/setup-code-25.png)
+
+27. Now from the VM restart the gerrit service to make the changes effective.
+
+	~~~bash
+	./review_site/bin/gerrit.sh stop
+	./review_site/bin/gerrit.sh start
+	~~~
 
 
 **[Back to top](#)**
 
+------------------------------
+
 <h2>Setup Continuous Integration job in Jenkins</h2>
 
 1. Create a verification job in Jenkins to trigger a job on new patch set created event in Gerrit.
-2. Make a change to the source code from the VM and submit the code for review using the `git review` option. 
-3. Validate the build job to see if it is getting triggered on a new patch set created event.
-4. Add a new .gitignore file and check if the Jenkins build job is getting triggered.
+
+	* Configure Jenkins credentials
+	
+	![](screenshots/setup-ci/setup-ci-1.png)
+
+	![](screenshots/setup-ci/setup-ci-2.png)
+
+	![](screenshots/setup-ci/setup-ci-3.png)
+
+	![](screenshots/setup-ci/setup-ci-4.png)
+
+	![](screenshots/setup-ci/setup-ci-5.png)
+
+	![](screenshots/setup-ci/setup-ci-6.png)
+	
+	* Setup `demo-verify` job in Jenkins to verify the patch set by executing the test cases.
+	
+	![](screenshots/setup-ci/setup-ci-7.png)
+	
+	![](screenshots/setup-ci/setup-ci-8.png)
+	
+	![](screenshots/setup-ci/setup-ci-9.png)
+	
+	![](screenshots/setup-ci/setup-ci-10.png)
+	
+	![](screenshots/setup-ci/setup-ci-11.png)
+	
+	![](screenshots/setup-ci/setup-ci-12.png)
+	
+	![](screenshots/setup-ci/setup-ci-13.png)
+	
+	![](screenshots/setup-ci/setup-ci-14.png)
+	
+	![](screenshots/setup-ci/setup-ci-15.png)
+	
+	![](screenshots/setup-ci/setup-ci-16.png)
+	
+	![](screenshots/setup-ci/setup-ci-17.png)
+	
+	![](screenshots/setup-ci/setup-ci-18.png)
+	
+	![](screenshots/setup-ci/setup-ci-19.png)
+	
+	![](screenshots/setup-ci/setup-ci-20.png)
+	
+	![](screenshots/setup-ci/setup-ci-21.png)
+	
+	![](screenshots/setup-ci/setup-ci-22.png)
+	
+	![](screenshots/setup-ci/setup-ci-23.png)
+	
+	![](screenshots/setup-ci/setup-ci-24.png)
+	
+	![](screenshots/setup-ci/setup-ci-25.png)
+
+	* Configure Gerrit Trigger plugin for version compatibility
+
+	![](screenshots/setup-ci/setup-ci-26.png)
+
+	![](screenshots/setup-ci/setup-ci-27.png)
+	
+	![](screenshots/setup-ci/setup-ci-28.png)
+	
+	![](screenshots/setup-ci/setup-ci-29.png)
+	
+	![](screenshots/setup-ci/setup-ci-30.png)
+	
+	![](screenshots/setup-ci/setup-ci-31.png)
+	
+	![](screenshots/setup-ci/setup-ci-32.png)
 
 
-![](screenshots/setup-ci/setup-ci-1.png)
 
-![](screenshots/setup-ci/setup-ci-2.png)
+2. Validate the build job to see if it is getting triggered on a new patch set created event.
 
-![](screenshots/setup-ci/setup-ci-3.png)
+3. Add a new .gitignore file and check if the Jenkins build job is getting triggered.
 
-![](screenshots/setup-ci/setup-ci-4.png)
+	Login to the VM as `devops` user and cd into the `demo-app` directory.
+	
+	Create a file called `.gitreview` and add the following content
+	
+	~~~bash
+	echo "[gerrit]
+host=192.168.56.103
+port=29418
+project=demo-app" >> .gitreview
+	~~~
+	
+	Create a file called `.gitignore` and add the following content
+	
+	~~~bash
+	echo "*.pyc
+env
+flaskr.db
+.gitreview" >> .gitignore 
+	~~~
+	
+4. add and commit the changes to the local development work tree. then submit this changes for review to see if the Jenkins verification job is getting triggered or not.
 
-![](screenshots/setup-ci/setup-ci-5.png)
+	~~~bash
+	git status
+	~~~
+	
+	![](screenshots/setup-ci/setup-ci-33.png)	
+	
+	~~~bash
+	git add .gitignore
+	~~~
+	
+	Before the code can be commited, git always wants to know the author of the change, so it will be easy to contact them regarding any clarifications. run the following commands to configure git
+	
+	~~~bash
+	git config --global user.email "sabdhagiri@gmail.com"
+	git config --global user.name "sabdhagiri"
+	~~~
+	
+	~~~bash
+	git commit -a -m "added .gitignore file to project"
+	git status
+	~~~
+	
+	Now `.gitreview` file shouldn't be listed in untracked files section as `.gitignore` instructs git not to track it.
+	
+	Submit this change for review
+	
+	~~~bash
+	git review
+	~~~
+	
+	This command will prompt for the username to connect to Gerrit, this is one time and you can use the `admin` user as we have already setup connectivity using SSH keys.
+	
 
-![](screenshots/setup-ci/setup-ci-6.png)
 
-![](screenshots/setup-ci/setup-ci-7.png)
-
-![](screenshots/setup-ci/setup-ci-8.png)
-
-![](screenshots/setup-ci/setup-ci-9.png)
-
-![](screenshots/setup-ci/setup-ci-10.png)
-
-![](screenshots/setup-ci/setup-ci-11.png)
-
-![](screenshots/setup-ci/setup-ci-12.png)
-
-![](screenshots/setup-ci/setup-ci-13.png)
-
-![](screenshots/setup-ci/setup-ci-14.png)
-
-![](screenshots/setup-ci/setup-ci-15.png)
-
-![](screenshots/setup-ci/setup-ci-16.png)
-
-![](screenshots/setup-ci/setup-ci-17.png)
-
-![](screenshots/setup-ci/setup-ci-18.png)
-
-![](screenshots/setup-ci/setup-ci-19.png)
-
-![](screenshots/setup-ci/setup-ci-20.png)
-
-![](screenshots/setup-ci/setup-ci-21.png)
-
-![](screenshots/setup-ci/setup-ci-22.png)
-
-![](screenshots/setup-ci/setup-ci-23.png)
-
-![](screenshots/setup-ci/setup-ci-24.png)
-
-![](screenshots/setup-ci/setup-ci-25.png)
-
-![](screenshots/setup-ci/setup-ci-26.png)
-
-![](screenshots/setup-ci/setup-ci-27.png)
-
-![](screenshots/setup-ci/setup-ci-28.png)
-
-![](screenshots/setup-ci/setup-ci-29.png)
-
-![](screenshots/setup-ci/setup-ci-30.png)
-
-![](screenshots/setup-ci/setup-ci-31.png)
-
-![](screenshots/setup-ci/setup-ci-32.png)
-
-![](screenshots/setup-ci/setup-ci-33.png)
 
 ![](screenshots/setup-ci/setup-ci-34.png)
 
@@ -597,7 +782,27 @@ ssh git@github.com
 
 ![](screenshots/setup-ci/setup-ci-36.png)
 
+![](screenshots/setup-ci/setup-ci-37.png)
+
+![](screenshots/setup-ci/setup-ci-38.png)
+
+![](screenshots/setup-ci/setup-ci-39.png)
+
+![](screenshots/setup-ci/setup-ci-40.png)
+
+![](screenshots/setup-ci/setup-ci-41.png)
+
+![](screenshots/setup-ci/setup-ci-42.png)
+
+![](screenshots/setup-ci/setup-ci-43.png)
+
+
+This will enable Jenkins to set the `Label: Verified` score whenever a new change is commited and a patch set created for that.
+
+
 **[Back to top](#)**
+
+------------------------------
 
 <h2>Setup Continuous deployment job in Jenkins</h2>
 
