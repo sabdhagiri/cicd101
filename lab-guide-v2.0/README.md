@@ -12,7 +12,6 @@
 8. [Setup Continuous Integration job in Jenkins](#setup-continuous-integration-job-in-jenkins)
 9. [Setup Continuous Deployment job in Jenkins](#setup-continuous-deployment-job-in-jenkins)
 10. [Verify and Validate CI/CD pipeline for incremental changes](#)
-11. [Q&A](#)
 
 
 --------------------------------------
@@ -431,6 +430,13 @@ Once we make changes the application will look like this
 	~~~
 9. Now the application is running in a container and serving requests at `http://<your-pod-ip>:9000`
 
+10. Once you verified the application make sure to delete the container you created.
+
+	~~~bash
+	docker stop demo-app
+	docker rm -f demo-app
+	~~~
+
 
 
 
@@ -838,9 +844,36 @@ flaskr.db
 
 1. This section will show how to build a new docker container image when change is reviewed and merged to master branch in gerrit and also it will trigger the deployment job which will deploy the updated image to docker environment.
 2. In Jenkins, create a new freestyle project called `demo-build` build the image on new Gerrit change merged event.
+
+	![](screenshots/setup-cd/setup-cd-1.png)
+	
+	![](screenshots/setup-cd/setup-cd-2.png)
+		
+	![](screenshots/setup-cd/setup-cd-3.png)
+		
+	![](screenshots/setup-cd/setup-cd-4.png)
+		
+	![](screenshots/setup-cd/setup-cd-5.png)
+		
+	![](screenshots/setup-cd/setup-cd-6.png)
+		
+	![](screenshots/setup-cd/setup-cd-7.png)
+		
+	![](screenshots/setup-cd/setup-cd-8.png)
+		
+	![](screenshots/setup-cd/setup-cd-9.png)
+		
+	![](screenshots/setup-cd/setup-cd-10.png)
+	
+	![](screenshots/setup-cd/setup-cd-11.png)
+	
+	![](screenshots/setup-cd/setup-cd-12.png)
+	
+	![](screenshots/setup-cd/setup-cd-13.png)
+
 3. In order to trigger this job, a new patch set needs to be created, verified and merged in Gerrit.
-4. For demo purposes, in the code there are three files which can be renamed to change the look and feel of the top header.
-5. cd into the working directory
+	
+	cd into the working directory
 	
 	~~~bash
 	cd demo-app
@@ -864,13 +897,49 @@ flaskr.db
 	git review
 	
 	~~~
+	
+4. This will create a new patch set in Gerrit and will trigger the `demo-verify` job just like in the previous lab.
+
+	![](screenshots/setup-cd/setup-cd-14.png)
+	
+	![](screenshots/setup-cd/setup-cd-15.png)
+	
+5. Once the change has been reviewed and submitted the `demo-build` job is suppose to trigger.
+
+	![](screenshots/setup-cd/setup-cd-18.png)
+	
+	![](screenshots/setup-cd/setup-cd-19.png)
+	
+	![](screenshots/setup-cd/setup-cd-20.png)
+	
+	![](screenshots/setup-cd/setup-cd-21.png)
+	
+	![](screenshots/setup-cd/setup-cd-22.png)
+	
+	![](screenshots/setup-cd/setup-cd-23.png)
+	
+6. Now, `demo-build` would have deployed the changes as new container in the docker host. You can verify the changes by visiting `http://192.168.56.103:9000` (replcae with your IP).
+	
+	![](screenshots/setup-cd/setup-cd-24.png)
+	
+7. This should've also replicated the changes to Github
+	
+	![](screenshots/setup-cd/setup-cd-25.png)
+	
+	![](screenshots/setup-cd/setup-cd-26.png)
 
 
  **[Back to top](#)**
-
+ 
+----------------------
 
 <h2>Verify and Validate CI/CD pipeline for incremental changes</h2>
 
+1. Make additional changes and submit the patch set the CI job and once the code is merged the CD job should be triggered automatically.
+2. This concludes the basics of CI/CD with Github, Gerrit, Jenkins and Docker.
+3. This model can be scaled to various scenarios and there could be multiple use cases where Jenkins can deploy to a remote docker cluster, or even a Kubernetes cluster based on the requirements.
+4. Jenkins is extensible, thanks to the amazing plugin ecosystem available for Jenkins to make it integrate with most of the Dev and Ops systems available in the industry.
 
-
-<h2>Q&A</h2>
+ **[Back to top](#)**
+ 
+----------------------
