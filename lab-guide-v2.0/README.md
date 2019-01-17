@@ -317,6 +317,10 @@ Once we make changes the application will look like this
 
 	![](screenshots/gerrit-jenkins/gerrit-jenkins-30.png)
 	
+	Jenkins also need another plugin to execute the verification job which will be setup later. Search and install plugin called `ShiningPanda` in Jenkins to execute the tests in a virtualenv.
+
+	![](screenshots/gerrit-jenkins/gerrit-jenkins-45.png)
+	
 22. Once the selection is done, click on `Download now and install after restart` and you will see Jenkins will be downloading the plugins.
 
 	![](screenshots/gerrit-jenkins/gerrit-jenkins-31.png)
@@ -357,6 +361,7 @@ Once we make changes the application will look like this
 29. Click on the `Status` red icon to see if turning to blue upon successful connection, this indicates that there are no connection issues between Gerrit and Jenkins.
 
 ![](screenshots/gerrit-jenkins/gerrit-jenkins-43.png)
+
 
 
 **[Back to top](#)**
