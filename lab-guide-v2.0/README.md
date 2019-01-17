@@ -633,6 +633,12 @@ Once we make changes the application will look like this
 	./review_site/bin/gerrit.sh stop
 	./review_site/bin/gerrit.sh start
 	~~~
+	
+28. Now login to the VM as `devops` user and execute the following command to start `Replication`
+
+	~~~bash
+	ssh admin@192.168.56.103 -p 29418 replication start
+	~~~
 
 
 **[Back to top](#)**
@@ -763,7 +769,13 @@ flaskr.db
 	git status
 	~~~
 	
+	![](screenshots/setup-ci/setup-ci-35.png)
+	
 	Now `.gitreview` file shouldn't be listed in untracked files section as `.gitignore` instructs git not to track it.
+	
+	Check Gerrit web UI to see for any open changes
+	
+	![](screenshots/setup-ci/setup-ci-36.png)
 	
 	Submit this change for review
 	
@@ -773,32 +785,50 @@ flaskr.db
 	
 	This command will prompt for the username to connect to Gerrit, this is one time and you can use the `admin` user as we have already setup connectivity using SSH keys.
 	
+	![](screenshots/setup-ci/setup-ci-37.png)
+	
+	This will create a new change in open changes section in Gerrit UI
+
+	![](screenshots/setup-ci/setup-ci-38.png)
+
+	Jenkins `demo-verify` will be triggered due to the matching `PatchSet created` event and Jenkins will send `+1` score for Verified
+
+	![](screenshots/setup-ci/setup-ci-39.png)
+
+	![](screenshots/setup-ci/setup-ci-40.png)
+
+	![](screenshots/setup-ci/setup-ci-41.png)
+
+	![](screenshots/setup-ci/setup-ci-42.png)
+
+	![](screenshots/setup-ci/setup-ci-43.png)
 
 
+	This will enable Jenkins to set the `Label: Verified` score whenever a new change is commited and a patch set created for that. 
 
-![](screenshots/setup-ci/setup-ci-34.png)
+5. Once Gerrit sees a +1 score for Label: Verified and +2 for Label: Code-Review it will allow the change to be submitted and merged to master.
 
-![](screenshots/setup-ci/setup-ci-35.png)
+	![](screenshots/setup-ci/setup-ci-44.png)
 
-![](screenshots/setup-ci/setup-ci-36.png)
+	![](screenshots/setup-ci/setup-ci-45.png)
 
-![](screenshots/setup-ci/setup-ci-37.png)
+	![](screenshots/setup-ci/setup-ci-46.png)
 
-![](screenshots/setup-ci/setup-ci-38.png)
+	![](screenshots/setup-ci/setup-ci-47.png)
 
-![](screenshots/setup-ci/setup-ci-39.png)
+	
+	
+6. Since, Gerrit is configured with `Replication` plugin it will replicate the changes to the upstream repo in `Github` enabling Continuous Integration of development changes.
 
-![](screenshots/setup-ci/setup-ci-40.png)
+	![](screenshots/setup-ci/setup-ci-50.png)
 
-![](screenshots/setup-ci/setup-ci-41.png)
+	![](screenshots/setup-ci/setup-ci-51.png)
+	
+	![](screenshots/setup-ci/setup-ci-48.png)
+	
+	![](screenshots/setup-ci/setup-ci-49.png)
 
-![](screenshots/setup-ci/setup-ci-42.png)
-
-![](screenshots/setup-ci/setup-ci-43.png)
-
-
-This will enable Jenkins to set the `Label: Verified` score whenever a new change is commited and a patch set created for that.
-
+	![](screenshots/setup-ci/setup-ci-52.png)
 
 **[Back to top](#)**
 
