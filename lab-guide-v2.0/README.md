@@ -742,18 +742,18 @@ Once we make changes the application will look like this
 	
 	~~~bash
 	echo "[gerrit]
-host=192.168.56.103
-port=29418
-project=demo-app" >> .gitreview
+	host=192.168.56.103
+	port=29418
+	project=demo-app" >> .gitreview
 	~~~
 	
 	Create a file called `.gitignore` and add the following content
 	
 	~~~bash
 	echo "*.pyc
-env
-flaskr.db
-.gitreview" >> .gitignore 
+	env
+	flaskr.db
+	.gitreview" >> .gitignore 
 	~~~
 	
 4. add and commit the changes to the local development work tree. then submit this changes for review to see if the Jenkins verification job is getting triggered or not.
