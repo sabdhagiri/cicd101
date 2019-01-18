@@ -870,6 +870,20 @@ Once we make changes the application will look like this
 		
 	![](screenshots/setup-cd/setup-cd-10.png)
 	
+	In the build section select `execute shell` from the dropdown and copy paste the following snippet in the shell box in the build section
+	
+	~~~bash
+	docker build -t demo-app:1.0.$BUILD_NUMBER .
+
+	sed -i 's/sabdhagiri\/todo\:latest/demo-app:1.0.'"$BUILD_NUMBER"'/' docker-compose.yml
+
+	sed -i 's/6488/9000/g' docker-compose.yml
+
+	docker-compose down
+
+	docker-compose up -d
+	~~~
+	
 	![](screenshots/setup-cd/setup-cd-11.png)
 	
 	![](screenshots/setup-cd/setup-cd-12.png)
